@@ -4,6 +4,13 @@ Entry: "42 stories, 7 regions — The World Today, Sunday 22 November 2026"
 (make.fun bounty news-image-20261122, $100, tutup Selasa 24 Nov 2026
 07:00 WIB).
 
+## Ronde 2 (22 Nov 2026)
+
+- Judul submit baru: "42 Stories, 7 Regions — The World Today, Sunday 22 November 2026, in One Picture" (formula pemenang: jumlah stories + region + tanggal + "in one picture").
+- Alasan: R1 tampil di papan sebagai codename acak "Grand Proton" karena submit R1 tidak memakai flag --title; R2 memakai --title yang terdokumentasi di kit. Gambar + main.py TIDAK diubah (entry.png byte-identik R1, sha256 656fcd90b1ffd02e52ce79685f708b4f68c59ccf0a3560dc458d34654f2a74c9).
+- Kuota (cek 12:10 WIB): day cap 6, taken 1, left 5, can_submit true.
+- Verifikasi (kit check + determinisme) dilakukan parent sebelum submit; hasilnya tercatat di record submission.
+
 ## Gambar (entry.png)
 
 - Format: PNG, 1024×1024, 709.244 byte (≤ 1.048.576 byte) — LOLOS gate.

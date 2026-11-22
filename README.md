@@ -2,7 +2,7 @@
 [![rank](https://make.fun/badge/news-image-20261122/turibaru/news-image-20261122/rank.svg)](https://make.fun/bounty/news-image-20261122/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261122)
 [![reward](https://make.fun/badge/news-image-20261122/turibaru/news-image-20261122/reward.svg)](https://make.fun/bounty/news-image-20261122?utm_source=github&utm_medium=readme&utm_campaign=news-image-20261122)
 
-# 42 stories, 7 regions — The World Today, Sunday 22 November 2026
+# 42 stories, 7 regions — The World Today, Sunday 22 November 2026, in One Picture
 
 A make.fun news-image entry: one image that sums up 22 November 2026's world
 news as the front page of a newspaper, "THE WORLD TODAY" — 42 verified
