@@ -1,9 +1,12 @@
-#!/usr/bin/env python3
-"""R7 news-image-20261122 — render entry.png 1024x1024.
+"""R7-FIX news-image-20261122 — render.py (compose baru dari spec R7-FIX).
 
-Struktur R7: 3 lead berdampingan + adegan lebar di atas, masthead 58px,
-peta 216px + pin bernomor, ALSO 2 kolom, red restraint (kicker hanya lead).
-Python + PIL saja, tanpa dependensi / network.
+SATU FIX vs R7: masthead 64px DejaVu Serif Bold, satu baris
+"Sunday 22 November 2026" di (10, 28); kotak merah DIHAPUS dari band
+masthead dan dipindah ke top bar kanan sebagai hitungan
+"38 STORIES · 7 REGIONS · ONE DAY — ONE PICTURE". Semua yang lain
+tetap seperti spec R7: 38 cerita (3 LEADS + 10 TEN + 1 kartu 35 +
+24 ALSO), peta 330x216 + pin bernomor, ALSO 2 kolom, red restraint.
+Kanvas 1024x1024, total vertikal 1024 tepat. Python + PIL saja.
 """
 import os
 from PIL import Image, ImageDraw, ImageFont
@@ -14,24 +17,15 @@ INK = (20, 20, 20)
 NAVY = (27, 42, 74)
 RED = (176, 30, 36)
 GREY = (90, 90, 90)
-WHITE = (255, 255, 255)
+LIGHT = (255, 255, 255)
 CREAM = (250, 246, 236)
 BODY = (60, 60, 60)
 FRAME = (200, 190, 170)
-
 FONT_DIR = "/usr/share/fonts/truetype/dejavu/"
-SERIF_B = "DejaVuSerif-Bold.ttf"
-SERIF = "DejaVuSerif.ttf"
-SANS_B = "DejaVuSans-Bold.ttf"
-SANS = "DejaVuSans.ttf"
-
 REGION_COLORS = {
-    "EUROPE": (14, 107, 122),
-    "MIDDLE EAST": (176, 30, 36),
-    "ASIA-PACIFIC": (217, 122, 31),
-    "AMERICAS": (43, 94, 167),
-    "AFRICA": (61, 139, 64),
-    "OCEANIA": (122, 79, 163),
+    "EUROPE": (14, 107, 122), "MIDDLE EAST": (176, 30, 36),
+    "ASIA-PACIFIC": (217, 122, 31), "AMERICAS": (43, 94, 167),
+    "AFRICA": (61, 139, 64), "OCEANIA": (122, 79, 163),
     "WORLD": (51, 51, 51),
 }
 
@@ -44,96 +38,87 @@ def F(name, size):
         return ImageFont.load_default()
 
 
+SERIF_B = "DejaVuSerif-Bold.ttf"
+SERIF = "DejaVuSerif.ttf"
+SANS_B = "DejaVuSans-Bold.ttf"
+SANS = "DejaVuSans.ttf"
+
+
+def text_w(d, text, font):
+    return d.textlength(text, font=font)
+
+
 def wrap(d, text, font, max_w):
-    """Bungkus teks ke beberapa baris agar muat max_w (per kata)."""
-    words = text.split()
-    lines, cur = [], ""
-    for word in words:
-        trial = (cur + " " + word).strip()
-        if d.textlength(trial, font=font) <= max_w or not cur:
+    """Bungkus teks per kata supaya tiap baris <= max_w."""
+    words, lines, cur = text.split(), [], ""
+    for w_ in words:
+        trial = (cur + " " + w_).strip()
+        if text_w(d, trial, font) <= max_w or not cur:
             cur = trial
         else:
             lines.append(cur)
-            cur = word
+            cur = w_
     if cur:
         lines.append(cur)
     return lines
 
 
 def draw_lines(d, x, y, lines, font, fill, lh):
-    """Gambar baris-baris teks, kembalikan y setelah baris terakhir."""
-    for line in lines:
-        d.text((x, y), line, font=font, fill=fill)
+    for ln in lines:
+        d.text((x, y), ln, font=font, fill=fill)
         y += lh
     return y
 
 
-# ---------------------------------------------------------------- data
-# LEADS (3): (nomor, region, topik, kicker, headline, isi, status, sumber)
+# ---------------------------------------------------------------- DATA §3
+# (nomor, region, topik, headline, isi, status, sumber) — LEADS
 LEADS = [
-    (1, "EUROPE", "WAR", "186 DRONES OVERNIGHT",
+    (1, "EUROPE", "WAR",
      "Russia fires 186 drones at Ukraine overnight; 161 downed",
-     "Air defences down or jam 161 of 186 strike drones fired from "
-     "eight directions; a five-storey block in Dymer is destroyed, "
-     "14 may be trapped.",
+     "Air defences down or jam 161 of 186 strike drones fired from eight "
+     "directions; a five-storey block in Dymer is destroyed, 14 may be trapped.",
      "CONFIRMED", "Ukrainian Air Force, Reuters"),
-    (2, "WORLD", "CLIMATE", "COP31: FINAL TEXT",
+    (2, "WORLD", "CLIMATE",
      "COP31's final text lands at dawn — with no mention of fossil fuels",
-     "The ten-page package drops the $120bn adaptation target, keeps a "
-     "35% clean-electricity goal for 2035, and admits the world will "
-     "overshoot 1.5C.",
+     "The ten-page package drops the $120bn adaptation target, keeps a 35% "
+     "clean-electricity goal for 2035, and admits the world will overshoot 1.5C.",
      "ONGOING", "BBC, Reuters, The Guardian"),
-    (3, "MIDDLE EAST", "GULF", "CLAIM VS DENIAL",
+    (3, "MIDDLE EAST", "GULF",
      "Iran claims strikes on US bases in Bahrain; two radars hit",
      "Tehran says it hit two Patriot radars at Al-Riffa and Awali Sakir. "
-     "Bahrain says its defences intercepted the attacks; a facility "
-     "burned, no casualties.",
+     "Bahrain says its defences intercepted the attacks; a facility burned, "
+     "no casualties.",
      "CLAIM", "Al Jazeera, Reuters, IRGC statement"),
 ]
+KICKERS = {1: "186 DRONES OVERNIGHT", 2: "COP31: FINAL TEXT",
+           3: "CLAIM VS DENIAL"}
 
-# TEN (10): (nomor, region, headline, isi, status, sumber)
+# (nomor, region, headline, isi, status, sumber) — TEN
 TEN = [
     (4, "ASIA-PACIFIC", "Hong Kong elects its Election Committee",
-     "856 candidates, 723 seats; 93.55% turnout.",
-     "CONFIRMED", "SCMP"),
+     "856 candidates, 723 seats; 93.55% turnout.", "CONFIRMED", "SCMP"),
     (5, "AMERICAS", "Verstappen takes the Las Vegas GP",
-     "0.639s clear of Norris; 75th win.",
-     "CONFIRMED", "Reuters, F1"),
+     "0.639s clear of Norris; 75th win.", "CONFIRMED", "Reuters, F1"),
     (6, "OCEANIA", "India declare 720/9 — a record in NZ",
-     "Rahul 136, Pant 128, Gill 98; record NZ total.",
-     "CONFIRMED", "Reuters, AP"),
+     "Rahul 136, Pant 128, Gill 98; record NZ total.", "CONFIRMED", "Reuters, AP"),
     (7, "AFRICA", "Bayelsa boat toll rises to 26",
-     "Mourners' boat capsized Friday; recovery goes on.",
-     "CONFIRMED", "RIA, Vanguard"),
+     "Mourners' boat capsized Friday; recovery goes on.", "CONFIRMED", "RIA, Vanguard"),
     (8, "MIDDLE EAST", "Iran starts rationing electricity",
-     "Two-hour daily cuts begin as gas output falls.",
-     "CONFIRMED", "Tavani, RFE/RL"),
+     "Two-hour daily cuts begin as gas output falls.", "CONFIRMED", "Tavani, RFE/RL"),
     (9, "ASIA-PACIFIC", "Candy-factory fire in Serang: 3 dead, 36 missing",
-     "Benten plant blaze; search goes on.",
-     "CONFIRMED", "Detiknews"),
+     "Benten plant blaze; search goes on.", "CONFIRMED", "Detiknews"),
     (10, "AMERICAS", "FBI probes hack of its crime database",
-     "Washington pauses gun checks; breach assessed.",
-     "REPORTED", "AP"),
+     "Washington pauses gun checks; breach assessed.", "REPORTED", "AP"),
     (11, "EUROPE", "Belgian controllers join strike",
-     "Most flights grounded 07:00-21:00.",
-     "CONFIRMED", "Reuters"),
+     "Most flights grounded 07:00-21:00.", "CONFIRMED", "Reuters"),
     (12, "ASIA-PACIFIC", "Toxic-liquor toll in Manipur climbs to 19",
-     "600 in hospital, six held; toll up from 11.",
-     "CONFIRMED", "Xinhua"),
+     "600 in hospital, six held; toll up from 11.", "CONFIRMED", "Xinhua"),
     (13, "AMERICAS", "Bolsonaro in intensive care",
-     "Bowel obstruction, stable, breathing on his own.",
-     "CONFIRMED", "Al Jazeera, Reuters"),
+     "Bowel obstruction, stable, breathing on his own.", "CONFIRMED", "Al Jazeera, Reuters"),
 ]
 
-# Kartu 35 (strip): (nomor, region, label, headline, status, sumber)
-# TIDAK ADA isi — R6 juga tanpa isi (hanya headline + status/sumber).
-CARD35 = (35, "EUROPE", "SHIP ABLAZE",
-          "Russian cargo ship Sparta II still burning",
-          "CONFIRMED", "Reuters")
-
-# ALSO (24 tampil, urutan nomor naik): (nomor, region, headline, status, sumber)
-# Sumber kosong ("") berarti tanpa kurung. Nomor 15, 30, 32, 37, 38, 43,
-# 44, 45 dibuang; nomor 35 jadi kartu strip, bukan di ALSO.
+# (nomor, region, headline, status, sumber) — ALSO, 24 tampil.
+# Nomor 15, 30, 32, 37, 38, 43, 44, 45 dibuang; 35 jadi kartu strip.
 ALSO = [
     (14, "MIDDLE EAST", "Gaza: Israeli fire kills 4", "REPORTED", "Al Jazeera"),
     (16, "AFRICA", "Drones hit homes, Khartoum", "REPORTED", "AFP"),
@@ -160,8 +145,10 @@ ALSO = [
     (42, "ASIA-PACIFIC", "Bangladesh acts after district attacks", "REPORTED", ""),
     (46, "AFRICA", "DRC president signs reform law", "CONFIRMED", ""),
 ]
+# Hitungan: 3 LEADS + 10 TEN + 1 kartu 35 + 24 ALSO = 38 cerita.
+CARD35 = (35, "EUROPE", "Russian cargo ship Sparta II still burning",
+          "CONFIRMED", "Reuters")
 
-# NUMBERS (6, satu baris): (angka, caption)
 NUMBERS = [
     ("186", "drones fired at Ukraine overnight"),
     ("161", "downed or jammed"),
@@ -170,64 +157,43 @@ NUMBERS = [
     ("720/9", "India's record Test total in NZ"),
     ("93.55%", "Hong Kong turnout by 14:00"),
 ]
-
-# REGIONS (7 chip, urutan ini): (region, jumlah)
-REGIONS = [
-    ("EUROPE", 9), ("MIDDLE EAST", 4), ("ASIA-PACIFIC", 7),
-    ("AMERICAS", 5), ("AFRICA", 8), ("OCEANIA", 2), ("WORLD", 3),
-]
-
-# UTC (6 item, urutan ini): (jam, peristiwa)
+REGIONS = [("EUROPE", 9), ("MIDDLE EAST", 4), ("ASIA-PACIFIC", 7),
+           ("AMERICAS", 5), ("AFRICA", 8), ("OCEANIA", 2), ("WORLD", 3)]
 UTC_ITEMS = [
-    ("01:00", "HK polls open"),
-    ("03:00", "COP31 objections close"),
+    ("01:00", "HK polls open"), ("03:00", "COP31 objections close"),
     ("03:46", "Trump weighs nuclear talks with Putin, Xi"),
-    ("05:11", "Hamas seeks talks"),
-    ("05:30", "Verstappen wins Las Vegas GP"),
+    ("05:11", "Hamas seeks talks"), ("05:30", "Verstappen wins Las Vegas GP"),
     ("06:00", "COP31 approval due"),
 ]
-
 DATE_CHECK = (
     "DATE CHECK — READ THIS FIRST. Wires read to 07:00 UTC, Sunday "
-    "22 November 2026. Every story here happened or was first reported "
-    "on 22 November 2026 (UTC). Left out on purpose: Russia's 400-drone "
-    "barrage (19-20 Nov) — tonight's barrage was 186 drones, not 400; "
-    "the Peru quake (Fri 20 Nov, USGS 6.7) — only the toll update is "
-    "today's news; 'El Chapo Isidro' arrest (Sat 21 Nov); the Shenzhen "
-    "summit (19 Nov); Poland: two Russian missiles landed (Fri 20 Nov)."
-)
-
+    "22 November 2026. Every story here happened or was first reported on "
+    "22 November 2026 (UTC). Left out on purpose: Russia's 400-drone barrage "
+    "(19-20 Nov) — tonight's barrage was 186 drones, not 400; the Peru quake "
+    "(Fri 20 Nov, USGS 6.7) — only the toll update is today's news; "
+    "'El Chapo Isidro' arrest (Sat 21 Nov); the Shenzhen summit (19 Nov); "
+    "Poland: two Russian missiles landed (Fri 20 Nov).")
 LEGEND = (
-    "HOW TO READ THE TAGS — CONFIRMED 2+ outlets · OFFICIAL on the "
-    "record · REPORTED one outlet or witnesses · CLAIM one side's claim, "
-    "contested · PENDING not settled yet · ONGOING still developing as "
-    "we print."
-)
-
+    "HOW TO READ THE TAGS — CONFIRMED 2+ outlets · OFFICIAL on the record · "
+    "REPORTED one outlet or witnesses · CLAIM one side's claim, contested · "
+    "PENDING not settled yet · ONGOING still developing as we print.")
 FOOTER = (
-    "Sources: Reuters · AP · AFP · BBC · Al Jazeera · The Guardian · "
-    "SCMP · dpa · Xinhua · Kyiv Independent · IRGC statement · Bahrain "
-    "MoI · HK Govt · F1 · Cricbuzz · Vatican News — Scenes are drawn "
-    "illustrations of reported events, not photographs. "
-    "THE WORLD IN ONE DAY · 22 NOV 2026"
-)
+    "Sources: Reuters · AP · AFP · BBC · Al Jazeera · The Guardian · SCMP · "
+    "dpa · Xinhua · Kyiv Independent · IRGC statement · Bahrain MoI · "
+    "HK Govt · F1 · Cricbuzz · Vatican News — Scenes are drawn illustrations "
+    "of reported events, not photographs. THE WORLD IN ONE DAY · 22 NOV 2026")
+DECK = ("186 drones over Ukraine overnight · COP31's deal names no fossil "
+        "fuels · Iran's radar claim meets Bahrain's denial")
+TOP_RIGHT = "38 STORIES · 7 REGIONS · ONE DAY — ONE PICTURE"
 
-# PETA — daratan: grid 44 kolom x 11 baris, tiap baris daftar (c0, c1)
+# Peta: grid 44 kolom x 11 baris, tiap baris daftar rentang (c0, c1).
 LAND = [
-    [(5, 12), (16, 20)],
-    [(3, 13), (15, 22), (30, 33)],
-    [(2, 14), (16, 24), (28, 38)],
-    [(4, 13), (17, 25), (27, 40)],
-    [(6, 12), (18, 26), (28, 38), (40, 42)],
-    [(8, 13), (19, 27), (30, 36)],
-    [(10, 14), (20, 26), (31, 34)],
-    [(12, 16), (22, 26)],
-    [(24, 27)],
-    [(38, 41)],
-    [(39, 42)],
+    [(5, 12), (16, 20)], [(3, 13), (15, 22), (30, 33)],
+    [(2, 14), (16, 24), (28, 38)], [(4, 13), (17, 25), (27, 40)],
+    [(6, 12), (18, 26), (28, 38), (40, 42)], [(8, 13), (19, 27), (30, 36)],
+    [(10, 14), (20, 26), (31, 34)], [(12, 16), (22, 26)],
+    [(24, 27)], [(38, 41)], [(39, 42)],
 ]
-
-# PETA — pin bernomor: (nomor, fx, fy) fraksi lebar/tinggi area peta
 PINS = [
     (1, 0.494, 0.085), (2, 0.539, 0.341), (3, 0.607, 0.427),
     (4, 0.809, 0.341), (5, 0.135, 0.341), (6, 0.899, 0.768),
@@ -235,416 +201,386 @@ PINS = [
     (10, 0.216, 0.341), (11, 0.404, 0.256), (12, 0.742, 0.230),
     (13, 0.270, 0.548),
 ]
-
-# Label region peta: (teks, fx, fy)
 MAP_LABELS = [
     ("AMERICAS", 0.15, 0.88), ("EUROPE", 0.395, 0.88),
     ("AFRICA", 0.49, 0.88), ("MIDDLE EAST", 0.58, 0.88),
     ("ASIA", 0.76, 0.88), ("OCEANIA", 0.88, 0.12),
 ]
 
-# ---------------------------------------------------------------- adegan
+
+# ---------------------------------------------------------------- ADEGAN §6
 def scene(d, box, idx):
-    """Gambar satu adegan di dalam box (x0, y0, x1, y1), semua koordinat
-    sebagai fraksi lebar (w) dan tinggi (h) kotak — proporsional."""
-    x0, y0, x1, y1 = box
-    w, h = x1 - x0, y1 - y0
+    """Gambar adegan idx di box (x, y, w, h); semua koordinat fraksi w/h."""
+    x, y, w, h = box
+    X = lambda f: x + f * w
+    Y = lambda f: y + f * h
 
-    def X(f):
-        return x0 + f * w
-
-    def Y(f):
-        return y0 + f * h
-
-    def R(fx0, fy0, fx1, fy1, fill):
+    def rect(fx0, fy0, fx1, fy1, fill):
         d.rectangle([X(fx0), Y(fy0), X(fx1), Y(fy1)], fill=fill)
 
-    def E(fx0, fy0, fx1, fy1, fill=None, outline=None, width=1):
-        d.ellipse([X(fx0), Y(fy0), X(fx1), Y(fy1)],
-                  fill=fill, outline=outline, width=width)
+    def ell(fx0, fy0, fx1, fy1, fill=None, outline=None, width=1):
+        d.ellipse([X(fx0), Y(fy0), X(fx1), Y(fy1)], fill=fill,
+                  outline=outline, width=width)
+
+    def poly(pts, fill):
+        d.polygon([(X(a), Y(b)) for a, b in pts], fill=fill)
+
+    def line(pts, fill, width=2):
+        d.line([(X(a), Y(b)) for a, b in pts], fill=fill, width=width)
 
     if idx == 1:  # Drones malam
-        R(0, 0, 1, 1, (16, 24, 52))
-        for sx, sy in [(0.08, 0.12), (0.22, 0.08), (0.35, 0.18),
-                       (0.55, 0.10), (0.68, 0.16), (0.85, 0.06),
-                       (0.15, 0.30), (0.45, 0.26), (0.78, 0.28)]:
-            d.ellipse([X(sx) - 1, Y(sy) - 1, X(sx) + 1, Y(sy) + 1],
-                      fill=(255, 214, 90))
-        E(0.78, 0.06, 0.92, 0.30, fill=(240, 230, 200))
-        E(0.82, 0.04, 0.94, 0.26, fill=(16, 24, 52))
-        for dx in (0.12, 0.34, 0.56, 0.76):
-            d.rectangle([X(dx), Y(0.30), X(dx) + 0.055 * w, Y(0.30) + 4],
-                        fill=(200, 200, 210))
-            d.line([X(dx) + 0.027 * w, Y(0.30) + 4,
-                    X(dx) + 0.027 * w, Y(0.30) + 10], fill=(200, 200, 210))
-        R(0, 0.72, 1, 1, (40, 44, 60))
-        d.line([X(0), Y(0.72), X(1), Y(0.72)], fill=(176, 30, 36), width=3)
-        for bx in (0.05, 0.22, 0.40, 0.58, 0.76, 0.90):
-            for wy in (0.78, 0.88):
-                d.rectangle([X(bx), Y(wy), X(bx) + 0.02 * w, Y(wy) + 0.04 * h],
-                            fill=(255, 200, 80))
+        rect(0, 0, 1, 1, (16, 24, 52))
+        for sx, sy in [(0.08, 0.12), (0.22, 0.06), (0.38, 0.16), (0.55, 0.08),
+                       (0.68, 0.18), (0.82, 0.06), (0.93, 0.22), (0.30, 0.24)]:
+            ell(sx - 0.006, sy - 0.012, sx + 0.006, sy + 0.012, (255, 214, 90))
+        ell(0.78, 0.04, 0.92, 0.28, (240, 230, 200))
+        ell(0.82, 0.02, 0.96, 0.26, (16, 24, 52))
+        for dx in (0.12, 0.34, 0.56, 0.78):
+            rect(dx, 0.30, dx + 0.09, 0.36, (200, 200, 210))
+            line([(dx + 0.045, 0.30), (dx + 0.045, 0.24)], (200, 200, 210), 2)
+        rect(0, 0.78, 1, 1, (40, 44, 60))
+        line([(0, 0.78), (1, 0.78)], (176, 30, 36), 3)
+        for bx in (0.05, 0.25, 0.45, 0.65, 0.85):
+            for wy in (0.82, 0.90):
+                rect(bx, wy, bx + 0.03, wy + 0.04, (255, 200, 80))
     elif idx == 2:  # COP31
-        R(0, 0, 1, 0.55, (122, 62, 140))
-        R(0, 0.55, 1, 1, (214, 122, 31))
-        E(0.42, 0.08, 0.58, 0.42, fill=(255, 214, 90))
-        for ang in range(0, 360, 72):
-            import math
-            a = math.radians(ang)
-            d.line([X(0.5) + 0.11 * w * math.cos(a),
-                    Y(0.25) + 0.11 * h * math.sin(a),
-                    X(0.5) + 0.16 * w * math.cos(a),
-                    Y(0.25) + 0.16 * h * math.sin(a)],
-                   fill=(255, 214, 90), width=3)
-        R(0.18, 0.62, 0.82, 0.72, (90, 50, 30))
-        for px in (0.22, 0.36, 0.50, 0.64, 0.78):
-            E(px - 0.03, 0.42, px + 0.03, 0.58, fill=(240, 200, 170))
-            d.rectangle([X(px) - 0.035 * w, Y(0.58),
-                         X(px) + 0.035 * w, Y(0.78)], fill=(30, 30, 40))
+        rect(0, 0, 1, 0.55, (122, 62, 140))
+        rect(0, 0.55, 1, 1, (214, 122, 31))
+        ell(0.40, 0.06, 0.60, 0.38, (255, 214, 90))
+        for ang in range(5):
+            sx = 0.5 + (ang - 2) * 0.16
+            line([(sx, 0.02), (sx, 0.10)], (255, 214, 90), 3)
+        rect(0.15, 0.62, 0.85, 0.78, (90, 50, 30))
+        for px in (0.20, 0.35, 0.50, 0.65, 0.80):
+            ell(px - 0.035, 0.42, px + 0.035, 0.56, (240, 200, 170))
+            poly([(px - 0.05, 0.62), (px + 0.05, 0.62),
+                  (px + 0.035, 0.56), (px - 0.035, 0.56)], (30, 30, 40))
     elif idx == 3:  # Radar Bahrain
-        R(0, 0, 1, 1, (18, 20, 38))
-        for sx, sy in [(0.10, 0.10), (0.30, 0.06), (0.55, 0.12),
-                       (0.75, 0.08), (0.90, 0.15), (0.20, 0.22)]:
-            d.ellipse([X(sx) - 1, Y(sy) - 1, X(sx) + 1, Y(sy) + 1],
-                      fill=(255, 255, 255))
-        for rx in (0.28, 0.62):
-            d.line([X(rx), Y(0.35), X(rx), Y(0.70)],
-                   fill=(180, 180, 180), width=3)
-            d.ellipse([X(rx) - 0.09 * w, Y(0.18), X(rx) + 0.09 * w, Y(0.38)],
-                      outline=(255, 214, 90), width=2)
-        d.polygon([(X(0.72), Y(0.70)), (X(0.80), Y(0.45)), (X(0.88), Y(0.70))],
-                  fill=(230, 90, 30))
-        d.polygon([(X(0.76), Y(0.70)), (X(0.80), Y(0.55)), (X(0.84), Y(0.70))],
-                  fill=(255, 190, 60))
-        R(0, 0.72, 1, 1, (20, 60, 90))
-        d.rectangle([X(0.08), Y(0.78), X(0.20), Y(0.84)], fill=(255, 255, 255))
-        d.line([X(0.14), Y(0.78), X(0.14), Y(0.68)],
-               fill=(255, 255, 255), width=2)
+        rect(0, 0, 1, 0.72, (18, 20, 38))
+        for sx, sy in [(0.1, 0.1), (0.3, 0.06), (0.5, 0.14), (0.7, 0.07),
+                       (0.9, 0.12), (0.2, 0.2), (0.85, 0.24)]:
+            ell(sx - 0.005, sy - 0.01, sx + 0.005, sy + 0.01, LIGHT)
+        for rx in (0.25, 0.60):
+            line([(rx, 0.62), (rx, 0.30)], (180, 180, 180), 3)
+            ell(rx - 0.11, 0.14, rx + 0.11, 0.36, outline=(255, 214, 90), width=2)
+        poly([(0.60, 0.62), (0.72, 0.62), (0.66, 0.38)], (230, 90, 30))
+        poly([(0.63, 0.62), (0.69, 0.62), (0.66, 0.46)], (255, 190, 60))
+        rect(0, 0.72, 1, 1, (20, 60, 90))
+        poly([(0.08, 0.86), (0.20, 0.86), (0.14, 0.80)], LIGHT)
+        line([(0.35, 0.88), (0.55, 0.88), (0.75, 0.88)], LIGHT, 2)
     elif idx == 4:  # Hong Kong vote
-        R(0, 0, 1, 1, (232, 222, 200))
-        d.rectangle([X(0.32), Y(0.30), X(0.68), Y(0.85)], fill=(176, 30, 36))
-        d.rectangle([X(0.38), Y(0.12), X(0.62), Y(0.34)], fill=(255, 255, 255))
-        d.line([X(0.38), Y(0.30), X(0.62), Y(0.30)], fill=(176, 30, 36), width=2)
-        d.text((X(0.50), Y(0.52)), "VOTE", font=F(SANS_B, 11),
-               fill=(255, 255, 255), anchor="mm")
+        rect(0, 0, 1, 1, (232, 222, 200))
+        rect(0.30, 0.30, 0.70, 0.92, (176, 30, 36))
+        rect(0.42, 0.18, 0.58, 0.34, LIGHT)
+        line([(0.45, 0.24), (0.55, 0.24)], (176, 30, 36), 2)
+        line([(0.45, 0.29), (0.55, 0.29)], (176, 30, 36), 2)
+        d.text((X(0.5), Y(0.62)), "VOTE", font=F(SANS_B, 11), fill=LIGHT,
+               anchor="mm")
     elif idx == 5:  # F1
-        R(0, 0, 1, 1, (30, 60, 110))
-        for cx in (0.12, 0.30):
-            for cy in (0.10, 0.16):
-                d.rectangle([X(cx), Y(cy), X(cx) + 0.06 * w, Y(cy) + 0.06 * h],
-                            fill=(255, 255, 255))
-        R(0, 0.55, 1, 1, (60, 60, 60))
-        d.line([X(0), Y(0.68), X(1), Y(0.68)], fill=(255, 255, 255), width=2)
-        d.rectangle([X(0.30), Y(0.42), X(0.62), Y(0.58)], fill=(220, 30, 40))
-        d.ellipse([X(0.33), Y(0.55), X(0.39), Y(0.66)], fill=(0, 0, 0))
-        d.ellipse([X(0.53), Y(0.55), X(0.59), Y(0.66)], fill=(0, 0, 0))
-        d.rectangle([X(0.80), Y(0.10), X(0.94), Y(0.30)], fill=(255, 255, 255))
-        d.text((X(0.87), Y(0.20)), "1", font=F(SANS_B, 14),
-               fill=(20, 20, 20), anchor="mm")
+        rect(0, 0, 1, 1, (30, 60, 110))
+        for cx in (0, 1):
+            for k in range(4):
+                rect(cx * 0.14 + (k % 2) * 0.035, 0.04 + (k // 2) * 0.05,
+                     cx * 0.14 + (k % 2) * 0.035 + 0.035,
+                     0.04 + (k // 2) * 0.05 + 0.05,
+                     LIGHT if (k % 2 == 0) == (cx == 0) else INK)
+        rect(0, 0.55, 1, 0.95, (60, 60, 60))
+        line([(0, 0.75), (1, 0.75)], LIGHT, 2)
+        poly([(0.30, 0.62), (0.70, 0.62), (0.66, 0.78), (0.34, 0.78)],
+             (220, 30, 40))
+        ell(0.36, 0.74, 0.44, 0.86, INK)
+        ell(0.58, 0.74, 0.66, 0.86, INK)
+        rect(0.82, 0.08, 0.94, 0.26, LIGHT)
+        d.text((X(0.88), Y(0.17)), "1", font=F(SANS_B, 12), fill=INK, anchor="mm")
     elif idx == 6:  # Cricket
-        R(0, 0, 1, 1, (90, 160, 80))
-        E(0.10, 0.15, 0.90, 0.95, fill=(214, 190, 140))
-        d.rectangle([X(0.38), Y(0.25), X(0.62), Y(0.90)], fill=(150, 110, 70))
+        rect(0, 0, 1, 1, (90, 160, 80))
+        ell(0.10, 0.15, 0.90, 0.90, (214, 190, 140))
+        rect(0.42, 0.20, 0.58, 0.85, (150, 110, 70))
         for sx in (0.46, 0.50, 0.54):
-            d.rectangle([X(sx), Y(0.30), X(sx) + 0.012 * w, Y(0.42)],
-                        fill=(255, 220, 120))
-        d.ellipse([X(0.68), Y(0.60), X(0.72), Y(0.66)], fill=(255, 255, 255))
-
+            line([(sx, 0.28), (sx, 0.44)], (255, 220, 120), 3)
+        ell(0.68, 0.60, 0.74, 0.70, LIGHT)
     elif idx == 7:  # Boat
-        R(0, 0, 1, 0.45, (255, 200, 120))
-        R(0, 0.45, 1, 1, (30, 90, 140))
-        d.line([X(0.32), Y(0.20), X(0.32), Y(0.55)],
-               fill=(120, 70, 40), width=3)
-        d.polygon([(X(0.32), Y(0.22)), (X(0.32), Y(0.52)),
-                   (X(0.52), Y(0.52))], fill=(255, 255, 255))
-        d.polygon([(X(0.18), Y(0.55)), (X(0.46), Y(0.55)),
-                   (X(0.40), Y(0.66)), (X(0.24), Y(0.66))],
-                  fill=(120, 70, 40))
-        d.polygon([(X(0.68), Y(0.60)), (X(0.82), Y(0.60)),
-                   (X(0.78), Y(0.68)), (X(0.72), Y(0.68))],
-                  fill=(120, 70, 40))
-        for wy in (0.75, 0.85):
-            d.arc([X(0.10), Y(wy), X(0.35), Y(wy) + 0.12],
-                  start=180, end=360, fill=(255, 255, 255), width=2)
-            d.arc([X(0.60), Y(wy), X(0.85), Y(wy) + 0.12],
-                  start=180, end=360, fill=(255, 255, 255), width=2)
+        rect(0, 0, 1, 0.45, (255, 200, 120))
+        rect(0, 0.45, 1, 1, (30, 90, 140))
+        line([(0.50, 0.10), (0.50, 0.55)], (120, 70, 40), 3)
+        poly([(0.52, 0.14), (0.52, 0.50), (0.72, 0.50)], LIGHT)
+        poly([(0.32, 0.55), (0.68, 0.55), (0.60, 0.68), (0.40, 0.68)],
+             (120, 70, 40))
+        poly([(0.78, 0.62), (0.92, 0.62), (0.88, 0.70), (0.82, 0.70)],
+             (120, 70, 40))
+        d.arc([X(0.05), Y(0.78), X(0.25), Y(0.95)], 0, 180, fill=LIGHT, width=2)
+        d.arc([X(0.60), Y(0.82), X(0.80), Y(0.98)], 0, 180, fill=LIGHT, width=2)
     elif idx == 8:  # Power pylon
-        R(0, 0, 1, 1, (200, 220, 240))
-        d.line([X(0.50), Y(0.15), X(0.38), Y(0.95)], fill=(90, 70, 50), width=4)
-        d.line([X(0.50), Y(0.15), X(0.62), Y(0.95)], fill=(90, 70, 50), width=4)
-        d.line([X(0.42), Y(0.55), X(0.58), Y(0.55)], fill=(90, 70, 50), width=3)
-        d.line([X(0.30), Y(0.25), X(0.50), Y(0.15)], fill=(0, 0, 0), width=2)
-        d.line([X(0.50), Y(0.15), X(0.70), Y(0.25)], fill=(0, 0, 0), width=2)
-        d.line([X(0.80), Y(0.30), X(0.80), Y(0.75)],
-               fill=(120, 120, 120), width=3)
-        E(0.76, 0.22, 0.84, 0.34, fill=(255, 220, 100))
+        rect(0, 0, 1, 1, (200, 220, 240))
+        poly([(0.46, 0.95), (0.54, 0.95), (0.52, 0.15), (0.48, 0.15)],
+             (90, 70, 50))
+        line([(0.30, 0.25), (0.70, 0.25)], INK, 2)
+        line([(0.35, 0.40), (0.65, 0.40)], INK, 2)
+        line([(0.20, 0.18), (0.80, 0.18)], INK, 2)
+        line([(0.82, 0.95), (0.82, 0.35)], (150, 150, 150), 3)
+        ell(0.78, 0.28, 0.86, 0.40, (255, 220, 100))
     elif idx == 9:  # Factory fire
-        R(0, 0, 1, 0.55, (240, 200, 120))
-        R(0, 0.55, 1, 1, (90, 90, 95))
-        d.rectangle([X(0.15), Y(0.45), X(0.65), Y(0.90)], fill=(140, 60, 50))
-        d.rectangle([X(0.68), Y(0.25), X(0.80), Y(0.90)], fill=(120, 120, 125))
-        E(0.62, 0.08, 0.78, 0.24, fill=(180, 180, 180))
-        E(0.72, 0.02, 0.88, 0.16, fill=(200, 200, 200))
-        d.polygon([(X(0.25), Y(0.55)), (X(0.38), Y(0.25)), (X(0.51), Y(0.55))],
-                  fill=(230, 90, 30))
-        d.polygon([(X(0.32), Y(0.55)), (X(0.38), Y(0.38)), (X(0.44), Y(0.55))],
-                  fill=(255, 190, 60))
+        rect(0, 0, 1, 0.45, (240, 200, 120))
+        rect(0, 0.45, 1, 1, (90, 90, 95))
+        rect(0.15, 0.45, 0.65, 0.90, (140, 60, 50))
+        rect(0.70, 0.20, 0.80, 0.90, (120, 120, 125))
+        ell(0.68, 0.06, 0.78, 0.18, (180, 180, 180))
+        ell(0.74, 0.12, 0.86, 0.24, (160, 160, 160))
+        poly([(0.30, 0.45), (0.50, 0.45), (0.40, 0.18)], (230, 90, 30))
+        poly([(0.36, 0.45), (0.46, 0.45), (0.41, 0.30)], (255, 190, 60))
     elif idx == 10:  # FBI
-        R(0, 0, 1, 1, (210, 225, 235))
-        d.rectangle([X(0.15), Y(0.20), X(0.62), Y(0.85)], fill=(255, 255, 255))
-        for i, ly in enumerate((0.32, 0.48, 0.64)):
-            d.line([X(0.22), Y(ly), X(0.55), Y(ly)],
-                   fill=(43, 94, 167), width=3)
-        E(0.55, 0.45, 0.88, 0.90, outline=(0, 0, 0), width=3)
-        d.line([X(0.82), Y(0.82), X(0.95), Y(0.98)], fill=(0, 0, 0), width=4)
+        rect(0, 0, 1, 1, (210, 225, 235))
+        rect(0.12, 0.18, 0.55, 0.88, LIGHT)
+        for i, ly in enumerate((0.32, 0.46, 0.60)):
+            line([(0.20, ly), (0.48, ly)], (43, 94, 167), 3)
+        ell(0.58, 0.22, 0.86, 0.62, outline=INK, width=3)
+        line([(0.82, 0.58), (0.96, 0.78)], INK, 4)
     elif idx == 11:  # Flights
-        R(0, 0, 1, 0.75, (170, 200, 235))
-        R(0, 0.75, 1, 1, (90, 110, 90))
-        for cx, cy in [(0.12, 0.15), (0.55, 0.10), (0.78, 0.22)]:
-            E(cx, cy, cx + 0.18, cy + 0.12, fill=(255, 255, 255))
-        d.ellipse([X(0.30), Y(0.40), X(0.70), Y(0.55)], fill=(255, 255, 255))
-        d.polygon([(X(0.30), Y(0.47)), (X(0.18), Y(0.42)), (X(0.30), Y(0.52))],
-                  fill=(255, 255, 255))
-        d.ellipse([X(0.72), Y(0.18), X(0.88), Y(0.26)], fill=(255, 255, 255))
+        rect(0, 0, 1, 0.75, (170, 200, 235))
+        rect(0, 0.75, 1, 1, (90, 110, 90))
+        for cx, cy, cw in [(0.12, 0.14, 0.20), (0.55, 0.08, 0.16), (0.80, 0.22, 0.14)]:
+            ell(cx, cy, cx + cw, cy + 0.12, LIGHT)
+        poly([(0.30, 0.48), (0.68, 0.48), (0.72, 0.54), (0.32, 0.54)], LIGHT)
+        poly([(0.46, 0.48), (0.52, 0.30), (0.56, 0.48)], LIGHT)
+        poly([(0.78, 0.30), (0.90, 0.30), (0.92, 0.34), (0.80, 0.34)], LIGHT)
     elif idx == 12:  # Poison
-        R(0, 0, 1, 1, (240, 230, 210))
-        d.rectangle([X(0.38), Y(0.35), X(0.55), Y(0.80)], fill=(255, 255, 255))
-        d.rectangle([X(0.44), Y(0.22), X(0.49), Y(0.35)], fill=(255, 255, 255))
-        d.line([X(0.38), Y(0.55), X(0.55), Y(0.55)], fill=(176, 30, 36), width=3)
-        E(0.10, 0.70, 0.35, 0.95, fill=(40, 120, 60))
-        E(0.65, 0.70, 0.90, 0.95, fill=(60, 140, 80))
+        rect(0, 0, 1, 1, (240, 230, 210))
+        rect(0.42, 0.30, 0.58, 0.85, LIGHT)
+        line([(0.42, 0.45), (0.58, 0.45)], (176, 30, 36), 3)
+        line([(0.42, 0.60), (0.58, 0.60)], (176, 30, 36), 3)
+        rect(0.47, 0.20, 0.53, 0.30, LIGHT)
+        poly([(0.10, 0.95), (0.28, 0.95), (0.19, 0.62)], (40, 120, 60))
+        poly([(0.72, 0.95), (0.90, 0.95), (0.81, 0.62)], (60, 140, 80))
     elif idx == 13:  # Hospital
-        R(0, 0, 1, 1, (200, 220, 235))
-        d.line([X(0.80), Y(0.15), X(0.80), Y(0.75)],
-               fill=(120, 120, 120), width=3)
-        d.rectangle([X(0.74), Y(0.30), X(0.86), Y(0.48)],
+        rect(0, 0, 1, 1, (200, 220, 235))
+        rect(0.10, 0.62, 0.80, 0.82, LIGHT)
+        rect(0.10, 0.62, 0.80, 0.72, (40, 120, 60))
+        line([(0.10, 0.72), (0.80, 0.72)], (255, 200, 60), 2)
+        ell(0.14, 0.48, 0.26, 0.64, (240, 200, 170))
+        line([(0.86, 0.15), (0.86, 0.85)], (150, 150, 150), 3)
+        rect(0.80, 0.22, 0.92, 0.42, LIGHT)
+        d.rectangle([X(0.80), Y(0.22), X(0.92), Y(0.42)],
                     outline=(176, 30, 36), width=2)
-        d.line([X(0.80), Y(0.35), X(0.80), Y(0.43)], fill=(176, 30, 36), width=3)
-        d.line([X(0.76), Y(0.39), X(0.84), Y(0.39)], fill=(176, 30, 36), width=3)
-        d.rectangle([X(0.12), Y(0.55), X(0.68), Y(0.85)], fill=(255, 255, 255))
-        d.rectangle([X(0.12), Y(0.68), X(0.68), Y(0.85)], fill=(40, 120, 60))
-        d.line([X(0.12), Y(0.68), X(0.68), Y(0.68)], fill=(255, 200, 60), width=3)
-        E(0.16, 0.42, 0.28, 0.58, fill=(240, 200, 170))
+        line([(0.86, 0.26), (0.86, 0.38)], (176, 30, 36), 2)
+        line([(0.81, 0.32), (0.91, 0.32)], (176, 30, 36), 2)
     elif idx == 35:  # Sparta II
-        R(0, 0, 1, 0.55, (200, 220, 235))
-        R(0, 0.55, 1, 1, (30, 90, 140))
-        d.rectangle([X(0.12), Y(0.48), X(0.68), Y(0.68)], fill=(40, 40, 50))
-        d.rectangle([X(0.55), Y(0.32), X(0.62), Y(0.48)], fill=(40, 40, 50))
-        d.polygon([(X(0.25), Y(0.48)), (X(0.35), Y(0.28)), (X(0.45), Y(0.48))],
-                  fill=(230, 90, 30))
-        d.polygon([(X(0.32), Y(0.48)), (X(0.35), Y(0.36)), (X(0.38), Y(0.48))],
-                  fill=(255, 190, 60))
-        E(0.48, 0.18, 0.62, 0.32, fill=(180, 180, 180))
-        E(0.58, 0.10, 0.72, 0.22, fill=(200, 200, 200))
-        d.rectangle([X(0.75), Y(0.72), X(0.90), Y(0.80)], fill=(255, 255, 255))
-        d.arc([X(0.10), Y(0.78), X(0.35), Y(0.92)],
-              start=180, end=360, fill=(255, 255, 255), width=2)
+        rect(0, 0, 1, 0.55, (200, 220, 235))
+        rect(0, 0.55, 1, 1, (30, 90, 140))
+        poly([(0.10, 0.55), (0.75, 0.55), (0.68, 0.72), (0.16, 0.72)],
+             (40, 40, 50))
+        rect(0.55, 0.32, 0.62, 0.55, (40, 40, 50))
+        poly([(0.38, 0.55), (0.52, 0.55), (0.45, 0.32)], (230, 90, 30))
+        poly([(0.42, 0.55), (0.49, 0.55), (0.455, 0.42)], (255, 190, 60))
+        ell(0.60, 0.18, 0.70, 0.30, (180, 180, 180))
+        ell(0.66, 0.24, 0.78, 0.36, (160, 160, 160))
+        poly([(0.78, 0.78), (0.92, 0.78), (0.88, 0.86), (0.82, 0.86)], LIGHT)
+        d.arc([X(0.05), Y(0.80), X(0.25), Y(0.96)], 0, 180, fill=LIGHT, width=2)
 
 
+# ---------------------------------------------------------------- KARTU §4
 def kicker_bar(d, x, y, w, label, status):
-    """Bar kicker merah 16px penuh lebar kartu lead + pil status navy."""
+    """Bar kicker merah 16px (hanya lead): label kiri + pil status kanan."""
     d.rectangle([x, y, x + w, y + 16], fill=RED)
-    d.text((x + 6, y + 3), label, font=F(SANS_B, 9), fill=WHITE)
-    pill = status
-    pw = d.textlength(pill, font=F(SANS_B, 8)) + 12
-    px = x + w - pw - 5
-    d.rounded_rectangle([px, y + 2, px + pw, y + 14], radius=6, fill=NAVY)
-    d.text((px + 6, y + 3), pill, font=F(SANS_B, 8), fill=WHITE)
+    d.text((x + 6, y + 3), label, font=F(SANS_B, 9), fill=LIGHT)
+    pil = F(SANS_B, 8)
+    tw = text_w(d, status, pil)
+    px1, py1 = x + w - 6 - tw - 12, y + 2
+    px2, py2 = x + w - 6, y + 14
+    d.rounded_rectangle([px1, py1, px2, py2], radius=6, fill=NAVY)
+    d.text((px1 + 6, y + 3), status, font=pil, fill=LIGHT)
 
-# ---------------------------------------------------------------- peta
-def draw_map(d, x, y, w, h):
-    """Peta kiri bawah 330x216: latar, header, daratan titik, pin, label."""
-    d.rectangle([x, y, x + w, y + h], fill=(214, 228, 235))
-    d.rectangle([x, y, x + w, y + 16], fill=NAVY)
-    d.text((x + 6, y + 3), "WHERE IT HAPPENED — pins match story numbers",
-           font=F(SANS_B, 9), fill=WHITE)
-    land_y0, land_h = y + 16, h - 16
-    cell_w, cell_h = w / 44.0, land_h / 11.0
+
+def draw_map(d, mx, my, mw, mh):
+    """Peta 330x216: header navy 16px + daratan titik + pin + label."""
+    d.rectangle([mx, my, mx + mw, my + mh], fill=(214, 228, 235))
+    d.rectangle([mx, my, mx + mw, my + 16], fill=NAVY)
+    d.text((mx + 6, my + 3), "WHERE IT HAPPENED — pins match story numbers",
+           font=F(SANS_B, 9), fill=LIGHT)
+    ax, ay, aw, ah = mx, my + 16, mw, mh - 16  # area daratan/pin
+    cw, ch = aw / 44.0, ah / 11.0
     for r, spans in enumerate(LAND):
         for c0, c1 in spans:
             for c in range(c0, c1 + 1):
-                cx = x + (c + 0.5) * cell_w
-                cy = land_y0 + (r + 0.5) * cell_h
+                cx = ax + (c + 0.5) * cw
+                cy = ay + (r + 0.5) * ch
                 d.rectangle([cx - 2, cy - 2, cx + 2, cy + 2], fill=(70, 100, 70))
-    for label, fx, fy in MAP_LABELS:
-        d.text((x + fx * w, y + fy * h), label, font=F(SANS_B, 6),
-               fill=NAVY, anchor="mm")
     for num, fx, fy in PINS:
-        px, py = x + fx * w, y + fy * h
+        px, py = ax + fx * aw, ay + fy * ah
         r = 10 if num in (9, 10, 12, 13) else 11
-        d.ellipse([px - r, py - r, px + r, py + r],
-                  fill=RED, outline=WHITE, width=1)
-        d.text((px, py), str(num), font=F(SANS_B, 10),
-               fill=WHITE, anchor="mm")
-
-
-# ---------------------------------------------------------------- kartu
-def draw_lead(d, x, y, w, h, item):
-    """Kartu LEAD 330x200: kicker, adegan 92px, region, headline, isi, sumber."""
-    num, region, topic, kicker, headline, body, status, source = item
-    d.rectangle([x, y, x + w, y + h], fill=CREAM, outline=FRAME, width=1)
-    kicker_bar(d, x + 1, y + 1, w - 2, kicker, status)
-    scene(d, (x + 4, y + 17, x + w - 4, y + 109), num)
-    d.text((x + 6, y + 111), "%d %s · %s" % (num, region, topic),
-           font=F(SANS_B, 9), fill=RED)
-    hl_font = F(SERIF_B, 15)
-    hl = wrap(d, headline, hl_font, w - 12)
-    if len(hl) > 2:
-        hl_font = F(SERIF_B, 14)
-        hl = wrap(d, headline, hl_font, w - 12)[:2]
-    hy = draw_lines(d, x + 6, y + 124, hl[:2], hl_font, INK, 16)
-    body_font = F(SANS, 10)
-    bl = wrap(d, body, body_font, w - 12)
-    if hy + len(bl[:3]) * 10 > y + h - 11:
-        body_font = F(SANS, 9)
-        bl = wrap(d, body, body_font, w - 12)
-    draw_lines(d, x + 6, hy + 1, bl[:3], body_font, BODY, 10)
-    d.text((x + 6, y + h - 11), "Source: %s" % source,
-           font=F(SANS, 8), fill=GREY)
-
-
-def draw_ten(d, x, y, w, h, item):
-    """Kartu TEN ~196x124: garis merah 3px, adegan 50px, label, headline,
-    isi 2 baris, status+sumber."""
-    num, region, headline, body, status, source = item
-    d.rectangle([x, y, x + w, y + h], fill=CREAM, outline=FRAME, width=1)
-    d.rectangle([x, y, x + w, y + 3], fill=RED)
-    scene(d, (x + 3, y + 4, x + w - 3, y + 54), num)
-    d.text((x + 5, y + 55), "%d %s" % (num, region),
-           font=F(SANS_B, 8), fill=RED)
-    hl_font = F(SERIF_B, 11)
-    hl = wrap(d, headline, hl_font, w - 10)
-    if len(hl) > 2:
-        hl_font = F(SERIF_B, 10)
-        hl = wrap(d, headline, hl_font, w - 10)[:2]
-    hy = draw_lines(d, x + 5, y + 67, hl[:2], hl_font, INK, 12)
-    bl = wrap(d, body, F(SANS, 9), w - 10)
-    draw_lines(d, x + 5, hy, bl[:2], F(SANS, 9), BODY, 10)
-    d.text((x + 5, y + h - 11), "%s · %s" % (status, source),
-           font=F(SANS, 8), fill=GREY)
-
-
-def draw_card35(d, x, y, w, h):
-    """Kartu 35 strip 1004x54: adegan 90x48 kiri + label + headline."""
-    num, region, label, headline, status, source = CARD35
-    d.rectangle([x, y, x + w, y + h], fill=CREAM, outline=FRAME, width=1)
-    scene(d, (x + 4, y + 3, x + 94, y + 51), num)
-    tx = x + 102
-    d.text((tx, y + 3), label, font=F(SANS_B, 9), fill=RED)
-    d.text((tx, y + 14), headline, font=F(SERIF_B, 13), fill=INK)
-    d.text((tx, y + 34), "%s · %s" % (status, source),
-           font=F(SANS, 8), fill=GREY)
-
-# ---------------------------------------------------------------- build
-def draw_also(d, x, y, w, h):
-    """ALSO kanan bawah 666x216: header navy + 24 baris, 2 kolom x 12."""
-    d.rectangle([x, y, x + w, y + 16], fill=NAVY)
-    d.text((x + 6, y + 2), "ALSO ON SUNDAY 22 NOVEMBER — 24 MORE STORIES",
-           font=F(SANS_B, 11), fill=WHITE)
-    col_w = (w - 10) // 2
-    for i, item in enumerate(ALSO):
-        num, region, headline, status, source = item
-        col, row = divmod(i, 12)
-        cx = x + 6 + col * (col_w + 10)
-        cy = y + 16 + row * 16 + 2
-        d.text((cx, cy), str(num), font=F(SANS_B, 11), fill=RED)
-        num_w = d.textlength(str(num), font=F(SANS_B, 11)) + 5
-        text = "%s — %s" % (headline, status)
-        if source:
-            text += " (%s)" % source
-        size = 12
-        # Batas lebar: pakai gutter 10px antar kolom (minus 6px celah ke
-        # nomor kolom berikut) — bukan col_w saja, supaya 23/24 baris
-        # muat 12px (diukur: hanya #34 yang jatuh ke 11px).
-        while size > 11 and d.textlength(text, font=F(SANS, size)) > col_w + 10 - num_w - 6:
-            size -= 1
-        d.text((cx + num_w, cy), text, font=F(SANS, size), fill=INK)
+        d.ellipse([px - r, py - r, px + r, py + r], fill=RED,
+                  outline=LIGHT, width=1)
+        d.text((px, py), str(num), font=F(SANS_B, 10), fill=LIGHT, anchor="mm")
+    lab = F(SANS_B, 6)
+    for name, fx, fy in MAP_LABELS:
+        d.text((ax + fx * aw, ay + fy * ah), name, font=lab, fill=NAVY,
+               anchor="mm")
 
 
 def build():
     img = Image.new("RGB", (W, H), PAPER)
     d = ImageDraw.Draw(img)
 
-    # Top bar 0-24
+    # --- Top bar (0, 24): navy; kiri nama koran, kanan hitungan R7-FIX.
     d.rectangle([0, 0, W, 24], fill=NAVY)
-    d.text((10, 6), "THE WORLD IN ONE DAY", font=F(SANS_B, 12), fill=WHITE)
-    right = "SUNDAY 22 NOVEMBER 2026 · ONE PAGE"
-    d.text((W - 10, 7), right, font=F(SANS_B, 11), fill=WHITE, anchor="ra")
+    d.text((10, 5), "THE WORLD IN ONE DAY", font=F(SANS_B, 12), fill=LIGHT)
+    d.text((1014, 6), TOP_RIGHT, font=F(SANS_B, 11), fill=LIGHT, anchor="ra")
 
-    # Masthead 24-112 — 48px (BUKAN 58px: diukur, 58px berakhir x=882,
-    # menabrak kotak merah di x=764; 48px berakhir x=732, aman)
-    d.text((10, 28), "Sunday 22 November 2026", font=F(SERIF_B, 48), fill=NAVY)
-    d.rectangle([764, 30, 1014, 86], fill=RED)
-    d.text((889, 38), "38 STORIES / 7 REGIONS", font=F(SANS_B, 15),
-           fill=WHITE, anchor="ma")
-    d.text((889, 60), "ONE DAY — ONE PICTURE", font=F(SANS_B, 13),
-           fill=WHITE, anchor="ma")
-    d.text((10, 96),
-           "186 drones over Ukraine overnight · COP31's deal names no fossil "
-           "fuels · Iran's radar claim meets Bahrain's denial",
-           font=F(SERIF, 12), fill=RED)
+    # --- Masthead (24, 88): 64px SERIF_B satu baris, TANPA kotak merah.
+    # "Sunday 22 November 2026" di (10, 28), lebar terukur 963px -> 10..973.
+    d.text((10, 28), "Sunday 22 November 2026", font=F(SERIF_B, 64),
+           fill=NAVY)
+    d.text((10, 98), DECK, font=F(SERIF, 12), fill=RED)
 
-    # NUMBERS 112-174
+    # --- NUMBERS (112, 62): header y114 + 6 kolom satu baris.
     d.text((10, 114), "THE DAY IN NUMBERS", font=F(SANS_B, 10), fill=NAVY)
-    for i, (value, caption) in enumerate(NUMBERS):
+    for i, (num, cap) in enumerate(NUMBERS):
         cx = 10 + i * 167
-        d.text((cx, 130), value, font=F(SERIF_B, 26), fill=RED)
-        cap = wrap(d, caption, F(SANS, 9), 160)
-        draw_lines(d, cx, 160, cap[:2], F(SANS, 9), GREY, 11)
+        d.text((cx, 126), num, font=F(SERIF_B, 26), fill=RED)
+        # Caption maks 2 baris (y154, lh 10) — "drones fired at Ukraine
+        # overnight" paling panjang, tetap muat sebelum blok berakhir (174).
+        draw_lines(d, cx, 154, wrap(d, cap, F(SANS, 9), 165)[:2],
+                   F(SANS, 9), GREY, 10)
 
-    # Region bar 174-194
-    d.text((10, 178), "REGIONS:", font=F(SANS_B, 10), fill=NAVY)
-    rx = 10 + d.textlength("REGIONS:", font=F(SANS_B, 10)) + 8
-    for region, count in REGIONS:
-        label = "%s %d" % (region, count)
-        chip_w = d.textlength(label, font=F(SANS_B, 9)) + 12
-        d.rounded_rectangle([rx, 176, rx + chip_w, 192], radius=4,
-                            fill=REGION_COLORS[region])
-        d.text((rx + 6, 179), label, font=F(SANS_B, 9), fill=WHITE)
-        rx += chip_w + 4
+    # --- Region bar (174, 20): "REGIONS:" + 7 chip warna.
+    d.text((10, 177), "REGIONS:", font=F(SANS_B, 10), fill=NAVY)
+    rx = 10 + text_w(d, "REGIONS: ", F(SANS_B, 10)) + 6
+    for name, count in REGIONS:
+        label = "%s %d" % (name, count)
+        fnt = F(SANS_B, 9)
+        tw = text_w(d, label, fnt)
+        d.rounded_rectangle([rx, 175, rx + tw + 12, 193], radius=4,
+                            fill=REGION_COLORS[name])
+        d.text((rx + 6, 177), label, font=fnt, fill=LIGHT)
+        rx += tw + 12 + 5
 
-    # UTC strip 194-210
-    d.text((10, 197), "THE DAY IN UTC", font=F(SANS_B, 9), fill=NAVY)
-    ux = 10 + d.textlength("THE DAY IN UTC", font=F(SANS_B, 9)) + 8
-    utc_text = " · ".join("%s %s" % (t, e) for t, e in UTC_ITEMS)
-    d.text((ux, 197), utc_text, font=F(SANS, 9), fill=INK)
+    # --- UTC strip (194, 16).
+    ux = 10 + text_w(d, "THE DAY IN UTC  ", F(SANS_B, 9)) + 4
+    d.text((10, 196), "THE DAY IN UTC", font=F(SANS_B, 9), fill=NAVY)
+    parts = ["%s %s" % (t, s) for t, s in UTC_ITEMS]
+    d.text((ux, 196), " · ".join(parts), font=F(SANS, 9), fill=INK)
 
-    # LEADS 210-410: 3 kartu 330 lebar, gutter 6px
-    lead_x = [10, 346, 682]
-    for lx, item in zip(lead_x, LEADS):
-        draw_lead(d, lx, 210, 330, 200, item)
+    # --- LEADS (210, 200): 3 kartu 330x200.
+    lead_xs = [10, 346, 682]
+    for (num, region, topic, head, body, status, src), lx in zip(LEADS, lead_xs):
+        ly, lw, lh = 210, 330, 200
+        d.rectangle([lx, ly, lx + lw, ly + lh], fill=CREAM, outline=FRAME)
+        kicker_bar(d, lx, ly, lw, KICKERS[num], status)
+        scene(d, (lx + 4, ly + 16, lw - 8, 92), num)
+        # Anggaran dalam kartu (200): 16 kicker + 92 adegan + 1 celah +
+        # 12 baris region (huruf kapital, tanpa descender) + headline 2x17 +
+        # isi 3x11 + 11 sumber = 199. Adegan TETAP 92px (min 88px).
+        cy = ly + 16 + 92 + 1
+        d.text((lx + 6, cy), "%d %s · %s" % (num, region, topic),
+               font=F(SANS_B, 9), fill=RED)
+        cy += 12
+        hf = F(SERIF_B, 15)
+        hlines = wrap(d, head, hf, lw - 12)
+        if len(hlines) > 2:  # headline 15 -> 14px bila perlu
+            hf = F(SERIF_B, 14)
+            hlines = wrap(d, head, hf, lw - 12)[:2]
+        cy = draw_lines(d, lx + 6, cy, hlines[:2], hf, INK, 17)
+        bf = F(SANS, 10)
+        blines = wrap(d, body, bf, lw - 12)
+        if len(blines) > 3:
+            bf = F(SANS, 9)
+            blines = wrap(d, body, bf, lw - 12)[:3]
+        cy = draw_lines(d, lx + 6, cy, blines[:3], bf, BODY, 11)
+        d.text((lx + 6, ly + lh - 11), "Source: %s" % src,
+               font=F(SANS, 8), fill=GREY)
 
-    # TEN header 410-428 + grid 428-682
+
+    # --- TEN header (410, 18) + TEN grid (428, 254): 2x5 kartu 196x124.
     d.rectangle([10, 410, 1014, 428], fill=NAVY)
-    d.text((14, 413), "THE DAY IN TEN", font=F(SANS_B, 11), fill=WHITE)
-    for i, item in enumerate(TEN):
-        col, row = i % 5, i // 5
-        tx = 10 + col * (196 + 6)
-        ty = 428 + row * (124 + 6)
-        draw_ten(d, tx, ty, 196, 124, item)
+    d.text((14, 413), "THE DAY IN TEN", font=F(SANS_B, 11), fill=LIGHT)
+    for k, (num, region, head, body, status, src) in enumerate(TEN):
+        tx = 10 + (k % 5) * 202
+        ty = 428 + (k // 5) * 130
+        tw, th = 196, 124
+        d.rectangle([tx, ty, tx + tw, ty + th], fill=CREAM, outline=FRAME)
+        d.rectangle([tx, ty, tx + tw, ty + 3], fill=RED)  # garis merah 3px
+        scene(d, (tx + 3, ty + 3, tw - 6, 50), num)
+        # Anggaran dalam kartu (124): 3 garis + 50 adegan + 1 celah +
+        # 11 label (kapital) + headline 2x13 + isi 2x10 + 11 status = 122.
+        cy = ty + 3 + 50 + 1
+        d.text((tx + 5, cy), "%d %s" % (num, region), font=F(SANS_B, 8),
+               fill=RED)
+        cy += 11
+        hf = F(SERIF_B, 11)
+        hlines = wrap(d, head, hf, tw - 10)
+        if len(hlines) > 2:  # headline 11 -> 10px bila perlu
+            hf = F(SERIF_B, 10)
+            hlines = wrap(d, head, hf, tw - 10)[:2]
+        cy = draw_lines(d, tx + 5, cy, hlines[:2], hf, INK, 13)
+        bf = F(SANS, 9)
+        blines = wrap(d, body, bf, tw - 10)[:2]
+        cy = draw_lines(d, tx + 5, cy, blines, bf, BODY, 10)
+        d.text((tx + 5, ty + th - 11), "%s · %s" % (status, src),
+               font=F(SANS, 8), fill=GREY)
 
-    # Kartu 35 strip 682-736
-    draw_card35(d, 10, 682, 1004, 54)
+    # --- Kartu 35 (682, 54): strip full-width, HANYA headline + status.
+    # ISI KOSONG — jangan fabrikasi isi apa pun.
+    d.rectangle([10, 682, 1014, 736], fill=CREAM, outline=FRAME)
+    scene(d, (13, 685, 90, 48), 35)
+    d.text((110, 686), "SHIP ABLAZE", font=F(SANS_B, 9), fill=RED)
+    d.text((110, 698), CARD35[2], font=F(SERIF_B, 13), fill=INK)
+    d.text((110, 720), "%s · %s" % (CARD35[3], CARD35[4]),
+           font=F(SANS, 8), fill=GREY)
 
-    # Bawah 736-952: peta kiri + ALSO kanan — peta 300 (BUKAN 330) agar
-    # ALSO 696 lebar: col_w 343, 23/24 baris muat 12px, #34 berakhir
-    # x=1015 (di dalam gambar). Tinggi peta tetap 216px.
-    draw_map(d, 10, 736, 300, 216)
-    draw_also(d, 316, 736, 696, 216)
+    # --- Bawah (736, 216): peta kiri + ALSO kanan.
+    draw_map(d, 10, 736, 330, 216)
+    ax, ay, aw = 346, 736, 666
+    d.rectangle([ax, ay, ax + aw, ay + 16], fill=NAVY)
+    d.text((ax + 6, ay + 2), "ALSO ON SUNDAY 22 NOVEMBER — 24 MORE STORIES",
+           font=F(SANS_B, 11), fill=LIGHT)
+    col_w = aw // 2  # 333
+    for i, (num, region, head, status, src) in enumerate(ALSO):
+        col, row = i // 12, i % 12
+        rx0 = ax + col * col_w
+        ry = ay + 16 + row * 16
+        nf = F(SANS_B, 11)
+        ntxt = str(num)
+        d.text((rx0 + 4, ry + 2), ntxt, font=nf, fill=RED)
+        tx0 = rx0 + 4 + text_w(d, ntxt, nf) + 5
+        # Ruang teks = tepi kanan kolom dikurangi awal teks (tanpa margin
+        # kanan tambahan — ambang ini setara avail R6 ~308: baris 12px
+        # yang muat berakhir >=3px sebelum tepi kolom, terukur dari tinta
+        # hasil render; yang tidak muat turun ke 11px, lantai 11px).
+        # (Rumus lama "rx0 + col_w - 4 - (tx0 - rx0)" SALAH: menambah rx0
+        # sehingga avail 651/984 dan loop shrink tidak pernah jalan —
+        # #18/#19 meluber ke kolom 2, #34 terpotong di tepi gambar.
+        # Koordinator perbaiki 23 Nov ~13:45 WIB; margin 4px dihapus
+        # ~13:50 WIB karena memberi 6 baris 11px, di atas batas spec
+        # maks 3 baris — ambang tepi kolom memberi tepat 3 baris 11px.)
+        avail = (rx0 + col_w) - tx0
+        full = "%s — %s" % (head, status)
+        if src:
+            full += " (%s)" % src
+        size = 12
+        # Toleransi 1px: lebar advance dibulatkan sub-pixel — #24 lebih
+        # 0,06px dari avail tapi tintanya berakhir 3px di dalam tepi
+        # kolom (676 vs 679), jadi 12px benar. Tanpa toleransi, #24
+        # turun ke 11px tanpa manfaat visual apa pun (4 baris 11px,
+        # di atas batas spec maks 3). Dengan toleransi: tepat 3 baris
+        # 11px (#18, #19, #34) — sama seperti R6.
+        while size > 11 and text_w(d, full, F(SANS, size)) > avail + 1:
+            size -= 1  # shrink-to-fit, lantai 11px — JANGAN di bawah 11px
+        d.text((tx0, ry + 2), full, font=F(SANS, size), fill=INK)
 
-    # Legend 952-961
-    d.text((10, 953), LEGEND, font=F(SANS, 8), fill=GREY)
+    # --- Legend (952, 9).
+    d.text((10, 952), LEGEND, font=F(SANS, 8), fill=GREY)
 
-    # DATE CHECK 961-995: kotak berbingkai RED, isi 2-3 baris
+    # --- DATE CHECK (961, 34): kotak berbingkai RED, teks JANGAN diubah.
     d.rectangle([10, 961, 1014, 995], outline=RED, width=1)
-    dc_lines = wrap(d, DATE_CHECK, F(SANS, 9), 1004 - 16)
-    draw_lines(d, 18, 963, dc_lines[:3], F(SANS, 9), INK, 10)
+    dcf = F(SANS, 9)
+    draw_lines(d, 14, 964, wrap(d, DATE_CHECK, dcf, 996), dcf, INK, 11)
 
-    # Footer 995-1012, maks 2 baris
-    ft_lines = wrap(d, FOOTER, F(SANS, 8), 1004)
-    draw_lines(d, 10, 996, ft_lines[:2], F(SANS, 8), GREY, 8)
+    # --- Footer (995, 17): maks 2 baris, lh 8 supaya baris ke-2
+    # berakhir 1011, sebelum bottom strip (1012).
+    ff = F(SANS, 8)
+    draw_lines(d, 10, 995, wrap(d, FOOTER, ff, 1004)[:2], ff, GREY, 8)
 
-    # Bottom strip 1012-1024
-    d.rectangle([0, 1012, W, 1024], fill=NAVY)
+    # --- Bottom strip (1012, 12): bar navy penuh, kosong.
+    d.rectangle([0, 1012, W, H], fill=NAVY)
 
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "entry.png")
     img.save(out)
