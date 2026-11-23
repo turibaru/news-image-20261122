@@ -296,6 +296,125 @@ def scene(d, box, idx):
         d.rectangle([bx - 3, by + 2, bx + 3, by + 14], fill=(40, 120, 60))
         d.ellipse([bx - 14, by - 8, bx - 2, by + 4], fill=(60, 140, 80))
         d.ellipse([bx + 2, by - 8, bx + 14, by + 4], fill=(60, 140, 80))
+    elif idx == 13:
+        # Bolsonaro in intensive care: hospital bed, Brazil-colour blanket.
+        d.rectangle([x0, y0, x1, y1], fill=(200, 220, 235))
+        d.rectangle([int(x0 + w * 10 // 100), int(y0 + h * 55 // 100),
+                     int(x0 + w * 90 // 100), int(y0 + h * 80 // 100)],
+                    fill=(255, 255, 255), outline=(120, 120, 130))
+        d.rectangle([int(x0 + w * 10 // 100), int(y0 + h * 55 // 100),
+                     int(x0 + w * 32 // 100), int(y0 + h * 80 // 100)],
+                    fill=(255, 255, 255), outline=(120, 120, 130))
+        d.ellipse([int(x0 + w * 16 // 100), int(y0 + h * 42 // 100),
+                   int(x0 + w * 30 // 100), int(y0 + h * 42 // 100 + 14)],
+                  fill=(240, 200, 170))
+        d.rectangle([int(x0 + w * 32 // 100), int(y0 + h * 55 // 100),
+                     int(x0 + w * 90 // 100), int(y0 + h * 80 // 100)],
+                    fill=(40, 120, 60))
+        d.rectangle([int(x0 + w * 32 // 100), int(y0 + h * 62 // 100),
+                     int(x0 + w * 90 // 100), int(y0 + h * 68 // 100)],
+                    fill=(255, 200, 60))
+        d.line([int(x0 + w * 88 // 100), int(y0 + h * 15 // 100),
+                int(x0 + w * 88 // 100), int(y0 + h * 55 // 100)],
+               fill=(120, 120, 130), width=2)
+        d.rectangle([int(x0 + w * 82 // 100), int(y0 + h * 15 // 100),
+                     int(x0 + w * 94 // 100), int(y0 + h * 28 // 100)],
+                    fill=(255, 255, 255), outline=(176, 30, 36))
+        d.line([int(x0 + w * 88 // 100), int(y0 + h * 18 // 100),
+                int(x0 + w * 88 // 100), int(y0 + h * 25 // 100)],
+               fill=(176, 30, 36), width=2)
+        d.line([int(x0 + w * 85 // 100), int(y0 + h * 21 // 100),
+                int(x0 + w * 91 // 100), int(y0 + h * 21 // 100)],
+               fill=(176, 30, 36), width=2)
+    elif idx == 17:
+        # BepiColombo enters Mercury orbit.
+        d.rectangle([x0, y0, x1, y1], fill=(10, 12, 30))
+        for sx, sy in [(10, 12), (85, 8), (70, 25), (20, 30), (92, 40)]:
+            px = int(x0 + sx * w // 100)
+            py = int(y0 + sy * h // 100)
+            d.ellipse([px, py, px + 2, py + 2], fill=(255, 255, 255))
+        mx = int(x0 + w * 55 // 100)
+        my = int(y0 + h * 58 // 100)
+        mr = int(min(w, h) * 26 // 100)
+        d.ellipse([mx - mr, my - mr, mx + mr, my + mr],
+                  fill=(180, 150, 120), outline=(120, 95, 75), width=2)
+        d.ellipse([mx - mr // 2, my - mr // 3, mx - mr // 4, my],
+                  fill=(140, 115, 90))
+        d.ellipse([int(x0 + w * 8 // 100), int(y0 + h * 12 // 100),
+                   int(x0 + w * 92 // 100), int(y0 + h * 88 // 100)],
+                  outline=(255, 214, 90), width=2)
+        sx = int(x0 + w * 78 // 100)
+        sy = int(y0 + h * 18 // 100)
+        d.rectangle([sx - 3, sy - 3, sx + 3, sy + 3], fill=(255, 255, 255))
+        d.rectangle([sx - 10, sy - 1, sx - 3, sy + 1], fill=(255, 214, 90))
+        d.rectangle([sx + 3, sy - 1, sx + 10, sy + 1], fill=(255, 214, 90))
+    elif idx == 20:
+        # Wembanyama scores 50: basketball + scoreboard.
+        d.rectangle([x0, y0, x1, y1], fill=(230, 120, 40))
+        d.rectangle([x0, int(y0 + h * 68 // 100), x1, y1], fill=(120, 70, 40))
+        bx = int(x0 + w * 32 // 100)
+        by = int(y0 + h * 42 // 100)
+        br = int(min(w, h) * 26 // 100)
+        d.ellipse([bx - br, by - br, bx + br, by + br],
+                  fill=(240, 140, 40), outline=(20, 20, 20), width=2)
+        d.line([bx - br, by, bx + br, by], fill=(20, 20, 20), width=2)
+        d.line([bx, by - br, bx, by + br], fill=(20, 20, 20), width=2)
+        d.arc([bx - br, by - br, bx + br, by + br], 300, 60,
+              fill=(20, 20, 20), width=2)
+        d.rectangle([int(x0 + w * 62 // 100), int(y0 + h * 8 // 100),
+                     int(x0 + w * 95 // 100), int(y0 + h * 34 // 100)],
+                    fill=(255, 255, 255), outline=(20, 20, 20))
+        d.text((int(x0 + w * 68 // 100), int(y0 + h * 10 // 100)), "50",
+               font=F(SANS_B, 12), fill=(27, 42, 74))
+    elif idx == 25:
+        # Snow strands 1,500 in Japan village.
+        d.rectangle([x0, y0, x1, y1], fill=(210, 225, 240))
+        d.rectangle([x0, int(y0 + h * 70 // 100), x1, y1],
+                    fill=(255, 255, 255))
+        for hx, hw in [(12, 30), (58, 28)]:
+            hx0 = int(x0 + w * hx // 100)
+            hwpx = int(w * hw // 100)
+            hy0 = int(y0 + h * 48 // 100)
+            d.rectangle([hx0, hy0, hx0 + hwpx, int(y0 + h * 72 // 100)],
+                        fill=(150, 110, 70))
+            d.polygon([(hx0 - 4, hy0), (hx0 + hwpx // 2, hy0 - 14),
+                       (hx0 + hwpx + 4, hy0)], fill=(255, 255, 255))
+        tx = int(x0 + w * 82 // 100)
+        d.polygon([(tx, int(y0 + h * 30 // 100)),
+                   (tx - 12, int(y0 + h * 58 // 100)),
+                   (tx + 12, int(y0 + h * 58 // 100))], fill=(40, 120, 60))
+        for sx, sy in [(15, 12), (45, 20), (75, 10), (30, 32), (60, 38)]:
+            px = int(x0 + sx * w // 100)
+            py = int(y0 + sy * h // 100)
+            d.ellipse([px, py, px + 3, py + 3], fill=(255, 255, 255))
+    elif idx == 35:
+        # Russian cargo ship Sparta II still burning.
+        d.rectangle([x0, y0, int(x1), int(y0 + h * 55 // 100)],
+                    fill=(200, 220, 235))
+        d.rectangle([x0, int(y0 + h * 55 // 100), x1, y1], fill=(30, 90, 140))
+        for wy in [62, 74, 86]:
+            yy = int(y0 + h * wy // 100)
+            d.arc([int(x0 + 4), yy, int(x0 + w // 3), yy + 10], 0, 180,
+                  fill=(255, 255, 255), width=2)
+            d.arc([int(x0 + w * 2 // 3), yy, int(x1 - 4), yy + 10], 0, 180,
+                  fill=(255, 255, 255), width=2)
+        hx0 = int(x0 + w * 15 // 100)
+        hx1 = int(x0 + w * 85 // 100)
+        hy0 = int(y0 + h * 46 // 100)
+        hy1 = int(y0 + h * 64 // 100)
+        d.rectangle([hx0, hy0, hx1, hy1], fill=(40, 40, 50))
+        d.rectangle([int(x0 + w * 60 // 100), int(y0 + h * 30 // 100),
+                     int(x0 + w * 72 // 100), hy0], fill=(60, 60, 70))
+        fx = int(x0 + w * 40 // 100)
+        fy = int(y0 + h * 46 // 100)
+        d.polygon([(fx - 12, fy), (fx - 4, fy - 20), (fx + 4, fy - 8),
+                   (fx + 12, fy - 22), (fx + 16, fy)],
+                  fill=(230, 90, 30))
+        d.polygon([(fx - 6, fy), (fx, fy - 12), (fx + 8, fy)],
+                  fill=(255, 190, 60))
+        d.ellipse([int(x0 + w * 62 // 100), int(y0 + h * 14 // 100),
+                   int(x0 + w * 72 // 100), int(y0 + h * 14 // 100 + 10)],
+                  fill=(120, 120, 120))
     else:
         d.rectangle([x0, y0, x1, y1], fill=(230, 220, 200))
         d.ellipse([int(cx - 14), int(y0 + h * 25 // 100),
@@ -409,8 +528,14 @@ UTC_ITEMS = [
     ("06:00", "COP31 approval due"),
 ]
 
-REGIONS = [("EUROPE", 12), ("MIDDLE EAST", 5), ("ASIA-PACIFIC", 7),
-           ("AMERICAS", 7), ("AFRICA", 9), ("OCEANIA", 2), ("WORLD", 4)]
+REGIONS = [("EUROPE", 9), ("MIDDLE EAST", 4), ("ASIA-PACIFIC", 7),
+           ("AMERICAS", 5), ("AFRICA", 8), ("OCEANIA", 2), ("WORLD", 3)]
+
+# R4: ALSO stories dropped (sourceless, lowest significance) and promoted to
+# illustrated strip cards. Each story appears exactly once on the page:
+# 3 LEADS + 10 TEN + 4 strip cards + 21 ALSO list = 38 stories.
+DROP_NUMS = {15, 30, 32, 37, 38, 43, 44, 45}
+STRIP_NUMS = [17, 20, 25, 35]
 
 PINS = [(1, 0.494, 0.085), (2, 0.539, 0.341), (3, 0.607, 0.427),
         (4, 0.809, 0.341), (5, 0.135, 0.341), (6, 0.899, 0.768),
@@ -471,16 +596,27 @@ def draw_map(d, x0, y0, x1, y1):
             for c in range(c0, c1 + 1):
                 px = int(mx0 + c * stepx)
                 py = int(my0 + r * stepy)
-                d.rectangle([px, py, px + 3, py + 3], fill=(90, 120, 90))
+                d.rectangle([px, py, px + 4, py + 4], fill=(70, 100, 70))
     for (num, fx, fy) in PINS:
         px = int(mx0 + int(fx * mw))
         py = int(my0 + int(fy * mh))
-        d.ellipse([px - 8, py - 8, px + 8, py + 8], fill=RED,
+        d.ellipse([px - 11, py - 11, px + 11, py + 11], fill=RED,
                   outline=LIGHT, width=1)
         t = str(num)
-        tf = F(SANS_B, 8)
+        tf = F(SANS_B, 10)
         tw = int(d.textlength(t, font=tf))
-        d.text((int(px - tw // 2), int(py - 6)), t, font=tf, fill=LIGHT)
+        d.text((int(px - tw // 2), int(py - 7)), t, font=tf, fill=LIGHT)
+    # Region labels (7px bold) along the bottom edge, clear of pins.
+    lf = F(SANS_B, 7)
+    for (label, fx, fy) in [("AMERICAS", 0.16, 0.88),
+                            ("EUROPE", 0.42, 0.88),
+                            ("AFRICA", 0.51, 0.88),
+                            ("MIDDLE EAST", 0.60, 0.88),
+                            ("ASIA", 0.745, 0.88),
+                            ("OCEANIA", 0.88, 0.12)]:
+        lx = int(mx0 + int(fx * mw))
+        ly = int(my0 + int(fy * mh))
+        d.text((lx, ly), label, font=lf, fill=NAVY)
 
 
 def lead_panel(d, box, item, ill_w, hsize, dsize):
@@ -518,22 +654,22 @@ def build():
     rf = F(SANS_B, 11)
     d.text((int(W - 10 - d.textlength(rt, font=rf)), 6), rt, font=rf, fill=LIGHT)
     # Masthead: giant date + red badge
-    d.text((10, 30), "Sunday 22 November 2026", font=F(SERIF_B, 44), fill=NAVY)
+    d.text((10, 30), "Sunday 22 November 2026", font=F(SERIF_B, 42), fill=NAVY)
     bx0 = int(W - 10 - 250)
     by0 = 34
     d.rectangle([bx0, by0, int(bx0 + 250), int(by0 + 46)], fill=RED)
-    d.text((int(bx0 + 12), int(by0 + 6)), "46 STORIES / 7 REGIONS",
+    d.text((int(bx0 + 12), int(by0 + 6)), "38 STORIES / 7 REGIONS",
            font=F(SANS_B, 15), fill=LIGHT)
     d.text((int(bx0 + 12), int(by0 + 26)), "ONE DAY — ONE PICTURE",
            font=F(SANS_B, 13), fill=LIGHT)
-    d.text((10, 84), "186 drones over Ukraine overnight · COP31's deal names "
+    d.text((10, 78), "186 drones over Ukraine overnight · COP31's deal names "
            "no fossil fuels · Iran's radar claim meets Bahrain's denial",
            font=F(SERIF, 13), fill=(140, 30, 36))
-    d.line([10, 110, int(W - 10), 110], fill=NAVY, width=2)
+    d.line([10, 100, int(W - 10), 100], fill=NAVY, width=2)
     # Numbers (left) + map (right)
-    ny0 = 116
+    ny0 = 106
     d.text((10, ny0), "THE DAY IN NUMBERS", font=F(SANS_B, 11), fill=NAVY)
-    bw = 196
+    bw = 188
     bh = 36
     gx0 = 10
     gy0 = int(ny0 + 18)
@@ -550,9 +686,9 @@ def build():
         yy = int(cy0 + 20)
         for ln in sl[:1]:
             d.text((int(cx0 + 8), yy), ln, font=sf, fill=INK)
-    draw_map(d, 650, ny0, int(W - 10), 222)
+    draw_map(d, 630, ny0, int(W - 10), 216)
     # Region bar
-    ry = 228
+    ry = 220
     x = 10
     d.text((x, ry), "REGIONS:", font=F(SANS_B, 10), fill=NAVY)
     x = 78
@@ -565,8 +701,8 @@ def build():
         d.text((int(x + 7), int(ry + 1)), label, font=f, fill=LIGHT)
         x = int(x + tw + 14 + 8)
     # UTC strip: one single line, small font so all six items fit in 1024px
-    uy = 254
-    d.rectangle([0, 250, W, 274], fill=(232, 226, 210))
+    uy = 246
+    d.rectangle([0, 242, W, 266], fill=(232, 226, 210))
     parts = []
     for (t, label) in UTC_ITEMS:
         parts.append(t + " " + label)
@@ -576,19 +712,19 @@ def build():
         uf = F(SANS, int(uf.size - 1))
     d.text((10, uy), utc_text, font=uf, fill=INK)
     # Lead 1 full width
-    lead_panel(d, (10, 280, int(W - 10), 394), LEADS[0], 200, 21, 11)
+    lead_panel(d, (10, 272, int(W - 10), 368), LEADS[0], 200, 21, 11)
     # Leads 2 + 3 side by side
     half = int((W - 20 - 8) // 2)
-    lead_panel(d, (10, 400, int(10 + half), 514), LEADS[1], 130, 16, 9)
-    lead_panel(d, (int(10 + half + 8), 400, int(W - 10), 514), LEADS[2], 130, 16, 9)
+    lead_panel(d, (10, 374, int(10 + half), 488), LEADS[1], 130, 16, 9)
+    lead_panel(d, (int(10 + half + 8), 374, int(W - 10), 488), LEADS[2], 130, 16, 9)
     # The Day in Ten header
-    d.rectangle([0, 520, W, 542], fill=NAVY)
-    d.text((10, 525), "THE DAY IN TEN", font=F(SANS_B, 12), fill=LIGHT)
+    d.rectangle([0, 494, W, 516], fill=NAVY)
+    d.text((10, 499), "THE DAY IN TEN", font=F(SANS_B, 12), fill=LIGHT)
     # Ten mini horizontal panels, 5 columns x 2 rows
     pw = 196
     ph = 100
     px0 = 10
-    py0 = 548
+    py0 = 522
     for i, item in enumerate(TEN):
         col = int(i % 5)
         row = int(i // 5)
@@ -618,22 +754,53 @@ def build():
         sw = int(d.textlength(status, font=sf))
         srcf = F(SANS, 7)
         d.text((int(tx + sw + 4), y), src, font=srcf, fill=GREY)
-    # Also on Sunday header
-    ay = 762
-    d.rectangle([0, ay, W, int(ay + 20)], fill=NAVY)
-    d.text((10, int(ay + 3)), "ALSO ON SUNDAY 22 NOVEMBER — 33 MORE STORIES",
+    # Four more in pictures: promoted ALSO stories as illustrated cards.
+    sy = 732
+    d.rectangle([0, sy, W, int(sy + 16)], fill=NAVY)
+    d.text((10, int(sy + 3)), "FOUR MORE IN PICTURES",
            font=F(SANS_B, 11), fill=LIGHT)
-    # Also: 33 stories, 3 columns x 11 rows
+    strip_by_num = {a[0]: a for a in ALSO}
+    spw = 246
+    sph = 50
+    spx0 = 10
+    spy0 = 750
+    for i, num in enumerate(STRIP_NUMS):
+        x0 = int(spx0 + i * (spw + 6))
+        y0 = spy0
+        x1 = int(x0 + spw)
+        y1 = int(y0 + sph)
+        snum, region, head, status, src = strip_by_num[num]
+        d.rectangle([x0, y0, x1, y1], fill=CREAM, outline=(200, 190, 170))
+        scene(d, (int(x0 + 3), int(y0 + 3), int(x0 + 3 + 56),
+                  int(y1 - 3)), snum)
+        tx = int(x0 + 3 + 56 + 5)
+        tw = int(x1 - tx - 5)
+        y = int(y0 + 3)
+        d.text((tx, y), str(snum) + "  " + region, font=F(SANS_B, 7),
+               fill=REGION[region])
+        y = int(y + 10)
+        hf = F(SERIF_B, 10)
+        lines = wrap(d, head, hf, tw)
+        y = draw_lines(d, lines[:2], tx, y, hf, INK, 12)
+        d.text((tx, int(y1 - 11)), src, font=F(SANS, 7), fill=GREY)
+    # Also on Sunday header
+    ay = 804
+    d.rectangle([0, ay, W, int(ay + 20)], fill=NAVY)
+    d.text((10, int(ay + 3)), "ALSO ON SUNDAY 22 NOVEMBER — 21 MORE STORIES",
+           font=F(SANS_B, 11), fill=LIGHT)
+    # Also: 21 stories, 3 columns x 7 rows (dropped + strip stories excluded)
+    also_items = [a for a in ALSO
+                  if a[0] not in DROP_NUMS and a[0] not in STRIP_NUMS]
     colw = 328
-    row_h = 14
-    ay0 = 788
-    for i, item in enumerate(ALSO):
-        col = int(i // 11)
-        row = int(i % 11)
+    row_h = 18
+    ay0 = 828
+    for i, item in enumerate(also_items):
+        col = int(i // 7)
+        row = int(i % 7)
         x0 = int(10 + col * (colw + 6))
         y0 = int(ay0 + row * row_h)
         num, region, head, status, src = item
-        nf = F(SANS_B, 9)
+        nf = F(SANS_B, 11)
         d.text((x0, y0), str(num), font=nf, fill=RED)
         nw = int(d.textlength(str(num), font=nf))
         tx = int(x0 + nw + 5)
@@ -641,18 +808,18 @@ def build():
         line = head + " — " + status
         if src != "":
             line = line + " (" + src + ")"
-        hf = F(SANS, 9)
+        hf = F(SANS, 12)
         while int(d.textlength(line, font=hf)) > avail and hf.size > 7:
             hf = F(SANS, int(hf.size - 1))
         d.text((tx, y0), line, font=hf, fill=INK)
     # Legend
-    ly = 944
+    ly = 954
     lf = F(SANS, 8)
     llines = wrap(d, LEGEND, lf, int(W - 20))
     draw_lines(d, llines, 10, ly, lf, GREY, 10)
     # Date check box at the very bottom above footer
-    dy0 = 956
-    dy1 = 994
+    dy0 = 964
+    dy1 = 1000
     d.rectangle([10, dy0, int(W - 10), dy1], fill=(176, 30, 36))
     df = F(SANS, 9)
     dlines = wrap(d, DATE_CHECK, df, int(W - 40))
@@ -663,7 +830,7 @@ def build():
     # Footer
     ff = F(SANS, 8)
     flines = wrap(d, FOOTER, ff, int(W - 20))
-    draw_lines(d, flines, 10, 996, ff, GREY, 9)
+    draw_lines(d, flines, 10, 1002, ff, GREY, 9)
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "entry.png")
     img.save(out, "PNG", optimize=True)
     return out
