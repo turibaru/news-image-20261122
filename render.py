@@ -1,4 +1,4 @@
-# render.py — News image, Sunday 22 November 2026 (Variant B, R3)
+# render.py — News image, Sunday 22 November 2026 (Variant B, R5)
 # Fresh compose from spec. Python 3 stdlib + PIL only, no network,
 # deterministic: no random, no timestamps. `python3 render.py` writes
 # entry.png (1024x1024, RGB) next to this file.
@@ -326,67 +326,6 @@ def scene(d, box, idx):
         d.line([int(x0 + w * 85 // 100), int(y0 + h * 21 // 100),
                 int(x0 + w * 91 // 100), int(y0 + h * 21 // 100)],
                fill=(176, 30, 36), width=2)
-    elif idx == 17:
-        # BepiColombo enters Mercury orbit.
-        d.rectangle([x0, y0, x1, y1], fill=(10, 12, 30))
-        for sx, sy in [(10, 12), (85, 8), (70, 25), (20, 30), (92, 40)]:
-            px = int(x0 + sx * w // 100)
-            py = int(y0 + sy * h // 100)
-            d.ellipse([px, py, px + 2, py + 2], fill=(255, 255, 255))
-        mx = int(x0 + w * 55 // 100)
-        my = int(y0 + h * 58 // 100)
-        mr = int(min(w, h) * 26 // 100)
-        d.ellipse([mx - mr, my - mr, mx + mr, my + mr],
-                  fill=(180, 150, 120), outline=(120, 95, 75), width=2)
-        d.ellipse([mx - mr // 2, my - mr // 3, mx - mr // 4, my],
-                  fill=(140, 115, 90))
-        d.ellipse([int(x0 + w * 8 // 100), int(y0 + h * 12 // 100),
-                   int(x0 + w * 92 // 100), int(y0 + h * 88 // 100)],
-                  outline=(255, 214, 90), width=2)
-        sx = int(x0 + w * 78 // 100)
-        sy = int(y0 + h * 18 // 100)
-        d.rectangle([sx - 3, sy - 3, sx + 3, sy + 3], fill=(255, 255, 255))
-        d.rectangle([sx - 10, sy - 1, sx - 3, sy + 1], fill=(255, 214, 90))
-        d.rectangle([sx + 3, sy - 1, sx + 10, sy + 1], fill=(255, 214, 90))
-    elif idx == 20:
-        # Wembanyama scores 50: basketball + scoreboard.
-        d.rectangle([x0, y0, x1, y1], fill=(230, 120, 40))
-        d.rectangle([x0, int(y0 + h * 68 // 100), x1, y1], fill=(120, 70, 40))
-        bx = int(x0 + w * 32 // 100)
-        by = int(y0 + h * 42 // 100)
-        br = int(min(w, h) * 26 // 100)
-        d.ellipse([bx - br, by - br, bx + br, by + br],
-                  fill=(240, 140, 40), outline=(20, 20, 20), width=2)
-        d.line([bx - br, by, bx + br, by], fill=(20, 20, 20), width=2)
-        d.line([bx, by - br, bx, by + br], fill=(20, 20, 20), width=2)
-        d.arc([bx - br, by - br, bx + br, by + br], 300, 60,
-              fill=(20, 20, 20), width=2)
-        d.rectangle([int(x0 + w * 62 // 100), int(y0 + h * 8 // 100),
-                     int(x0 + w * 95 // 100), int(y0 + h * 34 // 100)],
-                    fill=(255, 255, 255), outline=(20, 20, 20))
-        d.text((int(x0 + w * 68 // 100), int(y0 + h * 10 // 100)), "50",
-               font=F(SANS_B, 12), fill=(27, 42, 74))
-    elif idx == 25:
-        # Snow strands 1,500 in Japan village.
-        d.rectangle([x0, y0, x1, y1], fill=(210, 225, 240))
-        d.rectangle([x0, int(y0 + h * 70 // 100), x1, y1],
-                    fill=(255, 255, 255))
-        for hx, hw in [(12, 30), (58, 28)]:
-            hx0 = int(x0 + w * hx // 100)
-            hwpx = int(w * hw // 100)
-            hy0 = int(y0 + h * 48 // 100)
-            d.rectangle([hx0, hy0, hx0 + hwpx, int(y0 + h * 72 // 100)],
-                        fill=(150, 110, 70))
-            d.polygon([(hx0 - 4, hy0), (hx0 + hwpx // 2, hy0 - 14),
-                       (hx0 + hwpx + 4, hy0)], fill=(255, 255, 255))
-        tx = int(x0 + w * 82 // 100)
-        d.polygon([(tx, int(y0 + h * 30 // 100)),
-                   (tx - 12, int(y0 + h * 58 // 100)),
-                   (tx + 12, int(y0 + h * 58 // 100))], fill=(40, 120, 60))
-        for sx, sy in [(15, 12), (45, 20), (75, 10), (30, 32), (60, 38)]:
-            px = int(x0 + sx * w // 100)
-            py = int(y0 + sy * h // 100)
-            d.ellipse([px, py, px + 3, py + 3], fill=(255, 255, 255))
     elif idx == 35:
         # Russian cargo ship Sparta II still burning.
         d.rectangle([x0, y0, int(x1), int(y0 + h * 55 // 100)],
@@ -531,17 +470,17 @@ UTC_ITEMS = [
 REGIONS = [("EUROPE", 9), ("MIDDLE EAST", 4), ("ASIA-PACIFIC", 7),
            ("AMERICAS", 5), ("AFRICA", 8), ("OCEANIA", 2), ("WORLD", 3)]
 
-# R4: ALSO stories dropped (sourceless, lowest significance) and promoted to
-# illustrated strip cards. Each story appears exactly once on the page:
-# 3 LEADS + 10 TEN + 4 strip cards + 21 ALSO list = 38 stories.
+# R5: 17/20/25 demoted from strip cards back to the ALSO text list; 35 stays
+# illustrated as a full-width card above ALSO. Each story appears exactly
+# once on the page: 3 LEADS + 10 TEN + 1 wide card (35) + 24 ALSO = 38.
 DROP_NUMS = {15, 30, 32, 37, 38, 43, 44, 45}
-STRIP_NUMS = [17, 20, 25, 35]
+CARD35 = 35
 
 PINS = [(1, 0.494, 0.085), (2, 0.539, 0.341), (3, 0.607, 0.427),
         (4, 0.809, 0.341), (5, 0.135, 0.341), (6, 0.899, 0.768),
-        (7, 0.472, 0.512), (8, 0.674, 0.256), (9, 0.719, 0.512),
-        (10, 0.225, 0.341), (11, 0.404, 0.256), (12, 0.742, 0.256),
-        (13, 0.270, 0.512)]
+        (7, 0.472, 0.512), (8, 0.674, 0.256), (9, 0.719, 0.530),
+        (10, 0.216, 0.341), (11, 0.404, 0.256), (12, 0.742, 0.230),
+        (13, 0.270, 0.548)]
 
 LAND = [
     [(5, 12), (16, 20)],
@@ -600,19 +539,22 @@ def draw_map(d, x0, y0, x1, y1):
     for (num, fx, fy) in PINS:
         px = int(mx0 + int(fx * mw))
         py = int(my0 + int(fy * mh))
-        d.ellipse([px - 11, py - 11, px + 11, py + 11], fill=RED,
+        # R5: radius 10 for the crowded clusters (9/10/12/13), 11 elsewhere.
+        pr = 10 if num in (9, 10, 12, 13) else 11
+        d.ellipse([px - pr, py - pr, px + pr, py + pr], fill=RED,
                   outline=LIGHT, width=1)
         t = str(num)
         tf = F(SANS_B, 10)
         tw = int(d.textlength(t, font=tf))
         d.text((int(px - tw // 2), int(py - 7)), t, font=tf, fill=LIGHT)
-    # Region labels (7px bold) along the bottom edge, clear of pins.
-    lf = F(SANS_B, 7)
-    for (label, fx, fy) in [("AMERICAS", 0.16, 0.88),
-                            ("EUROPE", 0.42, 0.88),
-                            ("AFRICA", 0.51, 0.88),
-                            ("MIDDLE EAST", 0.60, 0.88),
-                            ("ASIA", 0.745, 0.88),
+    # Region labels (6px bold) along the bottom edge, clear of pins.
+    # R5: 6px + respread — at 7px EUROPE/AFRICA and MIDDLE EAST/ASIA touched.
+    lf = F(SANS_B, 6)
+    for (label, fx, fy) in [("AMERICAS", 0.15, 0.88),
+                            ("EUROPE", 0.395, 0.88),
+                            ("AFRICA", 0.49, 0.88),
+                            ("MIDDLE EAST", 0.58, 0.88),
+                            ("ASIA", 0.76, 0.88),
                             ("OCEANIA", 0.88, 0.12)]:
         lx = int(mx0 + int(fx * mw))
         ly = int(my0 + int(fy * mh))
@@ -654,7 +596,7 @@ def build():
     rf = F(SANS_B, 11)
     d.text((int(W - 10 - d.textlength(rt, font=rf)), 6), rt, font=rf, fill=LIGHT)
     # Masthead: giant date + red badge
-    d.text((10, 30), "Sunday 22 November 2026", font=F(SERIF_B, 42), fill=NAVY)
+    d.text((10, 30), "Sunday 22 November 2026", font=F(SERIF_B, 36), fill=NAVY)
     bx0 = int(W - 10 - 250)
     by0 = 34
     d.rectangle([bx0, by0, int(bx0 + 250), int(by0 + 46)], fill=RED)
@@ -662,15 +604,15 @@ def build():
            font=F(SANS_B, 15), fill=LIGHT)
     d.text((int(bx0 + 12), int(by0 + 26)), "ONE DAY — ONE PICTURE",
            font=F(SANS_B, 13), fill=LIGHT)
-    d.text((10, 78), "186 drones over Ukraine overnight · COP31's deal names "
+    d.text((10, 72), "186 drones over Ukraine overnight · COP31's deal names "
            "no fossil fuels · Iran's radar claim meets Bahrain's denial",
-           font=F(SERIF, 13), fill=(140, 30, 36))
-    d.line([10, 100, int(W - 10), 100], fill=NAVY, width=2)
+           font=F(SERIF, 12), fill=(140, 30, 36))
+    d.line([10, 90, int(W - 10), 90], fill=NAVY, width=2)
     # Numbers (left) + map (right)
-    ny0 = 106
+    ny0 = 96
     d.text((10, ny0), "THE DAY IN NUMBERS", font=F(SANS_B, 11), fill=NAVY)
     bw = 188
-    bh = 36
+    bh = 32
     gx0 = 10
     gy0 = int(ny0 + 18)
     for i, (big, small) in enumerate(NUMBERS):
@@ -686,9 +628,9 @@ def build():
         yy = int(cy0 + 20)
         for ln in sl[:1]:
             d.text((int(cx0 + 8), yy), ln, font=sf, fill=INK)
-    draw_map(d, 630, ny0, int(W - 10), 216)
+    draw_map(d, 630, ny0, int(W - 10), 202)
     # Region bar
-    ry = 220
+    ry = 206
     x = 10
     d.text((x, ry), "REGIONS:", font=F(SANS_B, 10), fill=NAVY)
     x = 78
@@ -701,8 +643,8 @@ def build():
         d.text((int(x + 7), int(ry + 1)), label, font=f, fill=LIGHT)
         x = int(x + tw + 14 + 8)
     # UTC strip: one single line, small font so all six items fit in 1024px
-    uy = 246
-    d.rectangle([0, 242, W, 266], fill=(232, 226, 210))
+    uy = 232
+    d.rectangle([0, 228, W, 250], fill=(232, 226, 210))
     parts = []
     for (t, label) in UTC_ITEMS:
         parts.append(t + " " + label)
@@ -711,20 +653,20 @@ def build():
     while int(d.textlength(utc_text, font=uf)) > int(W - 20) and uf.size > 7:
         uf = F(SANS, int(uf.size - 1))
     d.text((10, uy), utc_text, font=uf, fill=INK)
-    # Lead 1 full width
-    lead_panel(d, (10, 272, int(W - 10), 368), LEADS[0], 200, 21, 11)
+    # R5: lead 1 dominant — wider illustration, headline 25px (1.5x leads 2/3).
+    lead_panel(d, (10, 256, int(W - 10), 386), LEADS[0], 260, 25, 11)
     # Leads 2 + 3 side by side
     half = int((W - 20 - 8) // 2)
-    lead_panel(d, (10, 374, int(10 + half), 488), LEADS[1], 130, 16, 9)
-    lead_panel(d, (int(10 + half + 8), 374, int(W - 10), 488), LEADS[2], 130, 16, 9)
+    lead_panel(d, (10, 392, int(10 + half), 506), LEADS[1], 130, 16, 9)
+    lead_panel(d, (int(10 + half + 8), 392, int(W - 10), 506), LEADS[2], 130, 16, 9)
     # The Day in Ten header
-    d.rectangle([0, 494, W, 516], fill=NAVY)
-    d.text((10, 499), "THE DAY IN TEN", font=F(SANS_B, 12), fill=LIGHT)
+    d.rectangle([0, 512, W, 534], fill=NAVY)
+    d.text((10, 517), "THE DAY IN TEN", font=F(SANS_B, 12), fill=LIGHT)
     # Ten mini horizontal panels, 5 columns x 2 rows
     pw = 196
-    ph = 100
+    ph = 92
     px0 = 10
-    py0 = 522
+    py0 = 540
     for i, item in enumerate(TEN):
         col = int(i % 5)
         row = int(i // 5)
@@ -754,49 +696,33 @@ def build():
         sw = int(d.textlength(status, font=sf))
         srcf = F(SANS, 7)
         d.text((int(tx + sw + 4), y), src, font=srcf, fill=GREY)
-    # Four more in pictures: promoted ALSO stories as illustrated cards.
-    sy = 732
-    d.rectangle([0, sy, W, int(sy + 16)], fill=NAVY)
-    d.text((10, int(sy + 3)), "FOUR MORE IN PICTURES",
-           font=F(SANS_B, 11), fill=LIGHT)
-    strip_by_num = {a[0]: a for a in ALSO}
-    spw = 246
-    sph = 50
-    spx0 = 10
-    spy0 = 750
-    for i, num in enumerate(STRIP_NUMS):
-        x0 = int(spx0 + i * (spw + 6))
-        y0 = spy0
-        x1 = int(x0 + spw)
-        y1 = int(y0 + sph)
-        snum, region, head, status, src = strip_by_num[num]
-        d.rectangle([x0, y0, x1, y1], fill=CREAM, outline=(200, 190, 170))
-        scene(d, (int(x0 + 3), int(y0 + 3), int(x0 + 3 + 56),
-                  int(y1 - 3)), snum)
-        tx = int(x0 + 3 + 56 + 5)
-        tw = int(x1 - tx - 5)
-        y = int(y0 + 3)
-        d.text((tx, y), str(snum) + "  " + region, font=F(SANS_B, 7),
-               fill=REGION[region])
-        y = int(y + 10)
-        hf = F(SERIF_B, 10)
-        lines = wrap(d, head, hf, tw)
-        y = draw_lines(d, lines[:2], tx, y, hf, INK, 12)
-        d.text((tx, int(y1 - 11)), src, font=F(SANS, 7), fill=GREY)
+    # R5: story 35 stays illustrated as one full-width card (strip removed).
+    c35 = {a[0]: a for a in ALSO}[CARD35]
+    x0, y0, x1, y1 = 10, 736, int(W - 10), 780
+    d.rectangle([x0, y0, x1, y1], fill=CREAM, outline=(200, 190, 170))
+    scene(d, (int(x0 + 3), int(y0 + 3), int(x0 + 93), int(y1 - 3)), CARD35)
+    tx = int(x0 + 3 + 90 + 8)
+    y = int(y0 + 5)
+    d.text((tx, y), "35  " + c35[1], font=F(SANS_B, 7), fill=REGION[c35[1]])
+    y = int(y + 11)
+    hf = F(SERIF_B, 12)
+    d.text((tx, y), c35[2], font=hf, fill=INK)
+    y = int(y + 17)
+    d.text((tx, y), c35[3] + "  ·  " + c35[4], font=F(SANS, 8), fill=GREY)
     # Also on Sunday header
-    ay = 804
+    ay = 786
     d.rectangle([0, ay, W, int(ay + 20)], fill=NAVY)
-    d.text((10, int(ay + 3)), "ALSO ON SUNDAY 22 NOVEMBER — 21 MORE STORIES",
+    d.text((10, int(ay + 3)), "ALSO ON SUNDAY 22 NOVEMBER — 24 MORE STORIES",
            font=F(SANS_B, 11), fill=LIGHT)
-    # Also: 21 stories, 3 columns x 7 rows (dropped + strip stories excluded)
+    # Also: 24 stories, 3 columns x 8 rows (dropped + card 35 excluded)
     also_items = [a for a in ALSO
-                  if a[0] not in DROP_NUMS and a[0] not in STRIP_NUMS]
+                  if a[0] not in DROP_NUMS and a[0] != CARD35]
     colw = 328
     row_h = 18
-    ay0 = 828
+    ay0 = 810
     for i, item in enumerate(also_items):
-        col = int(i // 7)
-        row = int(i % 7)
+        col = int(i // 8)
+        row = int(i % 8)
         x0 = int(10 + col * (colw + 6))
         y0 = int(ay0 + row * row_h)
         num, region, head, status, src = item
@@ -813,12 +739,12 @@ def build():
             hf = F(SANS, int(hf.size - 1))
         d.text((tx, y0), line, font=hf, fill=INK)
     # Legend
-    ly = 954
+    ly = 956
     lf = F(SANS, 8)
     llines = wrap(d, LEGEND, lf, int(W - 20))
     draw_lines(d, llines, 10, ly, lf, GREY, 10)
     # Date check box at the very bottom above footer
-    dy0 = 964
+    dy0 = 966
     dy1 = 1000
     d.rectangle([10, dy0, int(W - 10), dy1], fill=(176, 30, 36))
     df = F(SANS, 9)
